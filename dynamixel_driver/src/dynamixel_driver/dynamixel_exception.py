@@ -1,5 +1,6 @@
+#!/usr/bin/env python3
 
-from dynamixel_const import *
+from . dynamixel_const import *
 
 class SerialOpenError(Exception):
     def __init__(self, port, baud):

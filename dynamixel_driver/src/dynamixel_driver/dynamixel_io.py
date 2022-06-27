@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
 # Software License Agreement (BSD License)
@@ -38,8 +38,8 @@ import serial
 from array import array
 from threading import RLock
 
-from dynamixel_const import *
-from dynamixel_exception import *
+from . dynamixel_const import *
+from . dynamixel_exception import *
 
 
 class DynamixelIO(object):

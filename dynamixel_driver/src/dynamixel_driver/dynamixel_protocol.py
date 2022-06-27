@@ -33,15 +33,15 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from dynamixel_const import *
-from dynamixel_exception import *
+from . dynamixel_const import *
+from . dynamixel_exception import *
 
-from dynamixel_io import DynamixelIO
+from . dynamixel_io import DynamixelIO
 
 
 class DynamixelProtocol(DynamixelIO):
     def __init__(self, port: str, baudrate: int):
-        DynamixelIO.__init__(port=port, baudrate=baudrate)
+        DynamixelIO.__init__(self,port=port, baudrate=baudrate)
 
     ######################################################################
     # These function modify EEPROM data which persists after power cycle #
