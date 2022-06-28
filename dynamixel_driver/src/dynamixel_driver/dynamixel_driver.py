@@ -153,8 +153,8 @@ class MotorState(object):
 
 class DynamixelDriver(object):
     def __init__(self,
-                 port_name='/dev/ttyUSB0',
-                 port_namespace='ttyUSB0',
+                 port_name="/dev/ttyUSB0",
+                 port_namespace="ttyUSB0",
                  baud_rate=1000000,
                  min_motor_id=1,
                  max_motor_id=25,
@@ -176,24 +176,73 @@ class DynamixelDriver(object):
 
         self._actual_rate = update_rate
         self._error_counts = {"non_fatal": 0, "checksum": 0, "dropped": 0}
-        self._num_ping_retries = 5
-        self._running = True
+        self._error_counts_lock = RLock()
 
+        self._num_ping_retries = 5
+        self._running = False
+
+        self._motor_params_lock = RLock()
         self._motor_params = {self._port_namespace: ""}
+
+        self._motor_static_info = dict()
 
         self._motor_states = list()
         self._motor_states_lock = RLock()
+
+        self._motors = list()
+        self._motors_lock = RLock()
+
+        self._driver_config = dict()
+        self._driver_config["port_name"] = port_name
+        self._driver_config["port_namespace"] = port_namespace
+        self._driver_config["baud_rate"] = baud_rate
+        self._driver_config["min_motor_id"] = min_motor_id
+        self._driver_config["max_motor_id"] = max_motor_id
+        self._driver_config["update_rate"] = update_rate
+        self._driver_config["diagnostics_rate"] = port_name
+        self._driver_config["error_level_temp"] = port_namespace
+        self._driver_config["warn_level_temp"] = baud_rate
+        self._driver_config["readback_echo"] = min_motor_id
+        self._driver_config["actual_rate"] = update_rate
+
+    @property
+    def driver_config(self):
+        return self._driver_config
 
     @property
     def motor_states(self):
         with self._motor_states_lock:
             return self._motor_states
 
+    @property
+    def motor_params(self):
+        with self._motor_params_lock:
+            return self._motor_params
+
+    @property
+    def motor_static_info(self):
+        return self._motor_static_info
+
+    @property
+    def connected_motors(self):
+        with self._motors_lock:
+            return self._motors
+
+    @property
+    def is_running(self):
+        return self._running
+
+    @property
+    def error_counts(self):
+        with self._error_counts_lock:
+            return self._error_counts
+
     def connect(self):
         try:
             self._dxl_protocol = DynamixelProtocol(
                 self._port_name, self._baud_rate)
-            self._find_motors()
+            with self._motors_lock:
+                self._find_motors()
         except SerialOpenError as e:
             raise e
 
@@ -207,62 +256,66 @@ class DynamixelDriver(object):
         Stores some extra information about each motor on the parameter server.
         Some of these paramters are used in joint controller implementation.
         """
-        angles = self._dxl_protocol.get_angle_limits(motor_id)
-        voltage = self._dxl_protocol.get_voltage(motor_id)
-        voltages = self._dxl_protocol.get_voltage_limits(motor_id)
+        with self._motor_params_lock:
+            angles = self._dxl_protocol.get_angle_limits(motor_id)
+            voltage = self._dxl_protocol.get_voltage(motor_id)
+            voltages = self._dxl_protocol.get_voltage_limits(motor_id)
 
-        self._motor_params[str(motor_id)] = dict()
-        self._motor_params[str(motor_id)]["model_number"] = model_number
-        self._motor_params[str(
-            motor_id)]["model_name"] = DXL_MODEL_TO_PARAMS[model_number]["name"]
-        self._motor_params[str(motor_id)]["min_angle"] = angles["min"]
-        self._motor_params[str(motor_id)]["max_angle"] = angles["max"]
+            self._motor_params[str(motor_id)] = dict()
+            self._motor_params[str(motor_id)]["model_number"] = model_number
+            self._motor_params[str(
+                motor_id)]["model_name"] = DXL_MODEL_TO_PARAMS[model_number]["name"]
+            self._motor_params[str(motor_id)]["min_angle"] = angles["min"]
+            self._motor_params[str(motor_id)]["max_angle"] = angles["max"]
 
-        torque_per_volt = DXL_MODEL_TO_PARAMS[model_number]['torque_per_volt']
+            torque_per_volt = DXL_MODEL_TO_PARAMS[model_number]["torque_per_volt"]
 
-        self._motor_params[str(motor_id)]["torque_per_volt"] = torque_per_volt
-        self._motor_params[str(
-            motor_id)]["max_torque"] = torque_per_volt * voltage
+            self._motor_params[str(
+                motor_id)]["torque_per_volt"] = torque_per_volt
+            self._motor_params[str(
+                motor_id)]["max_torque"] = torque_per_volt * voltage
 
-        velocity_per_volt = DXL_MODEL_TO_PARAMS[model_number]['velocity_per_volt']
-        rpm_per_tick = DXL_MODEL_TO_PARAMS[model_number]['rpm_per_tick']
+            velocity_per_volt = DXL_MODEL_TO_PARAMS[model_number]["velocity_per_volt"]
+            rpm_per_tick = DXL_MODEL_TO_PARAMS[model_number]["rpm_per_tick"]
 
-        self._motor_params[str(
-            motor_id)]["velocity_per_volt"] = velocity_per_volt
-        self._motor_params[str(
-            motor_id)]["max_velocity"] = velocity_per_volt * voltage
-        self._motor_params[str(
-            motor_id)]["radians_second_per_encoder_tick"] = rpm_per_tick * RPM_TO_RADSEC
+            self._motor_params[str(
+                motor_id)]["velocity_per_volt"] = velocity_per_volt
+            self._motor_params[str(
+                motor_id)]["max_velocity"] = velocity_per_volt * voltage
+            self._motor_params[str(
+                motor_id)]["radians_second_per_encoder_tick"] = rpm_per_tick * RPM_TO_RADSEC
 
-        encoder_resolution = DXL_MODEL_TO_PARAMS[model_number]['encoder_resolution']
-        range_degrees = DXL_MODEL_TO_PARAMS[model_number]['range_degrees']
-        range_radians = math.radians(range_degrees)
+            encoder_resolution = DXL_MODEL_TO_PARAMS[model_number]["encoder_resolution"]
+            range_degrees = DXL_MODEL_TO_PARAMS[model_number]["range_degrees"]
+            range_radians = math.radians(range_degrees)
 
-        self._motor_params[str(
-            motor_id)]["encoder_resolution"] = encoder_resolution
-        self._motor_params[str(motor_id)]["range_degrees"] = range_degrees
-        self._motor_params[str(motor_id)]["range_radians"] = range_radians
-        self._motor_params[str(
-            motor_id)]["encoder_ticks_per_degree"] = encoder_resolution / range_degrees
-        self._motor_params[str(
-            motor_id)]["encoder_ticks_per_radian"] = encoder_resolution / range_radians
-        self._motor_params[str(
-            motor_id)]["degrees_per_encoder_tick"] = range_degrees / encoder_resolution
-        self._motor_params[str(
-            motor_id)]["radians_per_encoder_tick"] = range_radians / encoder_resolution
+            self._motor_params[str(
+                motor_id)]["encoder_resolution"] = encoder_resolution
+            self._motor_params[str(motor_id)]["range_degrees"] = range_degrees
+            self._motor_params[str(motor_id)]["range_radians"] = range_radians
+            self._motor_params[str(
+                motor_id)]["encoder_ticks_per_degree"] = encoder_resolution / range_degrees
+            self._motor_params[str(
+                motor_id)]["encoder_ticks_per_radian"] = encoder_resolution / range_radians
+            self._motor_params[str(
+                motor_id)]["degrees_per_encoder_tick"] = range_degrees / encoder_resolution
+            self._motor_params[str(
+                motor_id)]["radians_per_encoder_tick"] = range_radians / encoder_resolution
 
-        # keep some parameters around for diagnostics
-        self._motor_static_info[str(motor_id)] = {}
-        self._motor_static_info[str(
-            motor_id)]['model'] = DXL_MODEL_TO_PARAMS[model_number]['name']
-        self._motor_static_info[str(
-            motor_id)]['firmware'] = self._dxl_protocol.get_firmware_version(motor_id)
-        self._motor_static_info[str(
-            motor_id)]['delay'] = self._dxl_protocol.get_return_delay_time(motor_id)
-        self._motor_static_info[str(motor_id)]['min_angle'] = angles['min']
-        self._motor_static_info[str(motor_id)]['max_angle'] = angles['max']
-        self._motor_static_info[str(motor_id)]['min_voltage'] = voltages['min']
-        self._motor_static_info[str(motor_id)]['max_voltage'] = voltages['max']
+            # keep some parameters around for diagnostics
+            self._motor_static_info[str(motor_id)] = {}
+            self._motor_static_info[str(
+                motor_id)]["model"] = DXL_MODEL_TO_PARAMS[model_number]["name"]
+            self._motor_static_info[str(
+                motor_id)]["firmware"] = self._dxl_protocol.get_firmware_version(motor_id)
+            self._motor_static_info[str(
+                motor_id)]["delay"] = self._dxl_protocol.get_return_delay_time(motor_id)
+            self._motor_static_info[str(motor_id)]["min_angle"] = angles["min"]
+            self._motor_static_info[str(motor_id)]["max_angle"] = angles["max"]
+            self._motor_static_info[str(
+                motor_id)]["min_voltage"] = voltages["min"]
+            self._motor_static_info[str(
+                motor_id)]["max_voltage"] = voltages["max"]
 
     def _find_motors(self):
         self._motors = list()
@@ -302,20 +355,22 @@ class DynamixelDriver(object):
         for motor_id in to_delete_if_error:
             self._motors.remove(motor_id)
 
-        status_str = '%s: Found %d motors - ' % (
+        self._motor_params[str(motor_id)]
+
+        status_str = "%s: Found %d motors - " % (
             self._port_namespace, len(self._motors))
         for model_number, count in counts.items():
             if count:
-                model_name = DXL_MODEL_TO_PARAMS[model_number]['name']
-                status_str += '%d %s [' % (count, model_name)
+                model_name = DXL_MODEL_TO_PARAMS[model_number]["name"]
+                status_str += "%d %s [" % (count, model_name)
 
                 for motor_id in self._motors:
-                    if self._motor_static_info[motor_id]['model'] == model_name:
-                        status_str += '%d, ' % motor_id
+                    if self._motor_static_info[motor_id]["model"] == model_name:
+                        status_str += "%d, " % motor_id
 
-                status_str = status_str[:-2] + '], '
+                status_str = status_str[:-2] + "], "
 
-    def _update_motor_states(self):
+    def update_motor_states(self):
         if self._running:
             motor_states = list()
 
@@ -327,14 +382,16 @@ class DynamixelDriver(object):
                 except FatalErrorCodeError as fece:
                     raise fece
                 except NonfatalErrorCodeError as nfece:
+                    with self._error_counts_lock:
+                        self._error_counts["non_fatal"] += 1
                     raise nfece
                 except ChecksumError as cse:
+                    with self._error_counts_lock:
+                        self._error_counts["checksum"] += 1
                     raise cse
                 except DroppedPacketError as dpe:
+                    with self._error_counts_lock:
+                        self._error_counts["dropped"] += 1
                     raise dpe
         with self._motor_states_lock:
             self._motor_states = motor_states
-
-        # Calculate actual update rate
-        # Note: need to see if this affects the logic in general
-        current_time = time.time()
