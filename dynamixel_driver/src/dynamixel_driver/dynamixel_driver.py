@@ -155,8 +155,8 @@ class DynamixelDriver(object):
     def __init__(self,
                  port_name="/dev/ttyUSB0",
                  port_namespace="ttyUSB0",
-                 baud_rate=1000000,
-                 min_motor_id=1,
+                 baud_rate=250000,
+                 min_motor_id=0,
                  max_motor_id=25,
                  update_rate=5,
                  diagnostics_rate=1,
@@ -333,7 +333,8 @@ class DynamixelDriver(object):
                     break
 
         if not self._motors:
-            raise
+            print(self._motors)
+            raise Exception
 
         counts = defaultdict(int)
 

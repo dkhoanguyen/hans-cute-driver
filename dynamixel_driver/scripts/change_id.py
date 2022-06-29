@@ -43,7 +43,6 @@
 
 
 from dynamixel_driver.dynamixel_exception import *
-from dynamixel_driver.dynamixel_io import DynamixelIO
 from dynamixel_driver.dynamixel_protocol import DynamixelProtocol
 import sys
 from optparse import OptionParser
@@ -78,7 +77,7 @@ if __name__ == '__main__':
     else:
         print('Changing motor id from %d to %d...' % (old_id, new_id))
         if dxl_io.ping(old_id):
-            dxl_io.set_id(old_id, new_id)
+            # dxl_io.set_id(old_id, new_id)
             print(' done')
             print('Verifying new id...')
             if dxl_io.ping(new_id):

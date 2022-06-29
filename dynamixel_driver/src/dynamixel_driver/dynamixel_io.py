@@ -232,6 +232,7 @@ class DynamixelIO(object):
             # read response
             try:
                 response = self._read_response(servo_id)
+                print(response)
                 response.append(timestamp)
             except Exception as e:
                 response = []

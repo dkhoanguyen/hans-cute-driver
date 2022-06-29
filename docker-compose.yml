@@ -1,0 +1,12 @@
+version: "3.0"
+
+services:
+  hans_cute_ws:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    privileged: true
+    network_mode: host
+    volumes:
+      - /dev/:/dev/
+      
