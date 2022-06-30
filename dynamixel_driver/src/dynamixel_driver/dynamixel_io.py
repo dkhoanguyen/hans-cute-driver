@@ -36,10 +36,10 @@
 import time
 import serial
 from array import array
-from threading import RLock
+from threading import RLock, Lock
 
-from . dynamixel_const import *
-from . dynamixel_exception import *
+from dynamixel_const import *
+from dynamixel_exception import *
 
 
 class DynamixelIO(object):
@@ -49,50 +49,61 @@ class DynamixelIO(object):
     multi-servo instruction packet.
     """
 
-    def __init__(self, port: str, baudrate: int, readback_echo: bool = False):
+    """ Provides low level IO with the Dynamixel servos through pyserial. Has the
+    ability to write instruction packets, request and read register value
+    packets, send and receive a response to a ping packet, and send a SYNC WRITE
+    multi-servo instruction packet.
+    """
+
+    def __init__(self, port, baudrate, readback_echo=False):
         """ Constructor takes serial port and baudrate as arguments. """
         try:
-            self._serial_lock = RLock()
-            self._serial = serial.Serial(port, baudrate, timeout=0.015)
-            self._port = port
-            self._baudrate = baudrate
-            self._readback_echo = readback_echo
+            self.serial_mutex = Lock()
+            self.ser = None
+            self.ser = serial.Serial(port, baudrate, timeout=0.015)
+            self.port_name = port
+            self.readback_echo = readback_echo
         except SerialOpenError:
-            raise SerialOpenError(port, baudrate)
+           raise SerialOpenError(port, baudrate)
+
+    def __del__(self):
+        """ Destructor calls DynamixelIO.close """
+        self.close()
 
     def close(self):
-        if self._serial:
-            self._serial.flushInput()
-            self._serial.flushOutput()
-            self._serial.close()
+        """
+        Be nice, close the serial port.
+        """
+        if self.ser:
+            self.ser.flushInput()
+            self.ser.flushOutput()
+            self.ser.close()
 
-    def _write(self, data: bytearray):
-        self._serial.flushInput()
-        self._serial.flushOutput()
-        self._serial.write(data)
-        if self._readback_echo:
-            self._serial.read(len(data))
+    def __write_serial(self, data):
+        self.ser.flushInput()
+        self.ser.flushOutput()
+        self.ser.write(data)
+        if self.readback_echo:
+            self.ser.read(len(data))
 
-    def _read_response(self, servo_id: int) -> list:
-        data = list()
+    def __read_response(self, servo_id):
+        data = []
+
         try:
-            data.extend(self._serial.read(4))
-            if not data[0:2] == ['\xff', '\xff']:
-                raise Exception(f"Wrong packet prefix {data[0:2]}")
-            data.extend(self._serial.read(ord(data[3])))
-            # [int(b2a_hex(byte), 16) for byte in data]
-            data = array('B', ''.join(data)).tolist()
+            data.extend(self.ser.read(4))
+            if not data[0:2] == ['\xff', '\xff']: raise Exception('Wrong packet prefix %s' % data[0:2])
+            data.extend(self.ser.read(ord(data[3])))
+            data = array('B', ''.join(data)).tolist() # [int(b2a_hex(byte), 16) for byte in data]
         except Exception as e:
-            raise DroppedPacketError(
-                f"Invalid response received from motor {servo_id}. {e}")
+            raise DroppedPacketError('Invalid response received from motor %d. %s' % (servo_id, e))
+
         # verify checksum
         checksum = 255 - sum(data[2:-1]) % 256
-        if not checksum == data[-1]:
-            raise ChecksumError(servo_id, data, checksum)
+        if not checksum == data[-1]: raise ChecksumError(servo_id, data, checksum)
 
         return data
 
-    def read(self, servo_id: int, address: int, size: int) -> list:
+    def read(self, servo_id, address, size):
         """ Read "size" bytes of data from servo with "servo_id" starting at the
         register with "address". "address" is an integer between 0 and 57. It is
         recommended to use the constants in module dynamixel_const for readability.
@@ -107,29 +118,26 @@ class DynamixelIO(object):
         # directly from AX-12 manual:
         # Check Sum = ~ (ID + LENGTH + INSTRUCTION + PARAM_1 + ... + PARAM_N)
         # If the calculated value is > 255, the lower byte is the check sum.
-        checksum = 255 - \
-            ((servo_id + length + DXL_READ_DATA + address + size) % 256)
+        checksum = 255 - ( (servo_id + length + DXL_READ_DATA + address + size) % 256 )
 
         # packet: FF  FF  ID LENGTH INSTRUCTION PARAM_1 ... CHECKSUM
-        packet = [0xFF, 0xFF, servo_id, length,
-                  DXL_READ_DATA, address, size, checksum]
-        # same as: packetStr = ''.join([chr(byte) for byte in packet])
-        packet_str = array('B', packet).tostring()
+        packet = [0xFF, 0xFF, servo_id, length, DXL_READ_DATA, address, size, checksum]
+        packetStr = array('B', packet).tostring() # same as: packetStr = ''.join([chr(byte) for byte in packet])
 
-        with self._serial_lock:
-            self._write(packet_str)
+        with self.serial_mutex:
+            self.__write_serial(packetStr)
 
             # wait for response packet from the motor
             timestamp = time.time()
-            time.sleep(0.0013)  # 0.00235)
+            time.sleep(0.0013)#0.00235)
 
             # read response
-            data = self._read_response(servo_id)
+            data = self.__read_response(servo_id)
             data.append(timestamp)
 
         return data
 
-    def write(self, servo_id: int, address: int, data: list) -> list:
+    def write(self, servo_id, address, data):
         """ Write the values from the "data" list to the servo with "servo_id"
         starting with data[0] at "address", continuing through data[n-1] at
         "address" + (n-1), where n = len(data). "address" is an integer between
@@ -146,31 +154,29 @@ class DynamixelIO(object):
         # directly from AX-12 manual:
         # Check Sum = ~ (ID + LENGTH + INSTRUCTION + PARAM_1 + ... + PARAM_N)
         # If the calculated value is > 255, the lower byte is the check sum.
-        checksum = 255 - \
-            ((servo_id + length + DXL_WRITE_DATA + address + sum(data)) % 256)
+        checksum = 255 - ((servo_id + length + DXL_WRITE_DATA + address + sum(data)) % 256)
 
         # packet: FF  FF  ID LENGTH INSTRUCTION PARAM_1 ... CHECKSUM
         packet = [0xFF, 0xFF, servo_id, length, DXL_WRITE_DATA, address]
         packet.extend(data)
         packet.append(checksum)
 
-        # packetStr = ''.join([chr(byte) for byte in packet])
-        packet_str = array('B', packet).tostring()
+        packetStr = array('B', packet).tostring() # packetStr = ''.join([chr(byte) for byte in packet])
 
-        with self._serial_lock:
-            self._write(packet_str)
+        with self.serial_mutex:
+            self.__write_serial(packetStr)
 
             # wait for response packet from the motor
             timestamp = time.time()
             time.sleep(0.0013)
 
             # read response
-            data = self._read_response(servo_id)
+            data = self.__read_response(servo_id)
             data.append(timestamp)
 
         return data
 
-    def sync_write(self, address: int, data: list):
+    def sync_write(self, address, data):
         """ Use Broadcast message to send multiple servos instructions at the
         same time. No "status packet" will be returned from any servos.
         "address" is an integer between 0 and 49. It is recommended to use the
@@ -189,23 +195,21 @@ class DynamixelIO(object):
         # Number of bytes following standard header (0xFF, 0xFF, id, length) plus data
         length = 4 + len(flattened)
 
-        checksum = 255 - ((DXL_BROADCAST + length +
-                          DXL_SYNC_WRITE + address + len(data[0][1:]) +
+        checksum = 255 - ((DXL_BROADCAST + length + \
+                          DXL_SYNC_WRITE + address + len(data[0][1:]) + \
                           sum(flattened)) % 256)
 
         # packet: FF  FF  ID LENGTH INSTRUCTION PARAM_1 ... CHECKSUM
-        packet = [0xFF, 0xFF, DXL_BROADCAST, length,
-                  DXL_SYNC_WRITE, address, len(data[0][1:])]
+        packet = [0xFF, 0xFF, DXL_BROADCAST, length, DXL_SYNC_WRITE, address, len(data[0][1:])]
         packet.extend(flattened)
         packet.append(checksum)
 
-        # packetStr = ''.join([chr(byte) for byte in packet])
-        packet_str = array('B', packet).tostring()
+        packetStr = array('B', packet).tostring() # packetStr = ''.join([chr(byte) for byte in packet])
 
-        with self._serial_lock:
-            self._write(packet_str)
+        with self.serial_mutex:
+            self.__write_serial(packetStr)
 
-    def ping(self, servo_id: int):
+    def ping(self, servo_id):
         """ Ping the servo with "servo_id". This causes the servo to return a
         "status packet". This can tell us if the servo is attached and powered,
         and if so, if there are any errors.
@@ -220,10 +224,13 @@ class DynamixelIO(object):
 
         # packet: FF  FF  ID LENGTH INSTRUCTION CHECKSUM
         packet = [0xFF, 0xFF, servo_id, length, DXL_PING, checksum]
-        packet_str = array('B', packet).tostring()
+        # packetStr = array('B', packet).tostring()
+        packetStr = str(packet)
 
-        with self._serial_lock:
-            self._write(packet_str)
+        print(packetStr)
+
+        with self.serial_mutex:
+            self.__write_serial(packetStr)
 
             # wait for response packet from the motor
             timestamp = time.time()
@@ -231,8 +238,7 @@ class DynamixelIO(object):
 
             # read response
             try:
-                response = self._read_response(servo_id)
-                print(response)
+                response = self.__read_response(servo_id)
                 response.append(timestamp)
             except Exception as e:
                 response = []
@@ -244,7 +250,6 @@ class DynamixelIO(object):
     def test_bit(self, number, offset):
         mask = 1 << offset
         return (number & mask)
-
     def exception_on_error(self, error_code: int, servo_id: int, command_failed: str):
         exception = None
         ex_message = '[servo #%d on %s@%sbps]: %s failed' % (servo_id, self._port, self._baudrate, command_failed)
@@ -275,3 +280,8 @@ class DynamixelIO(object):
             msg = 'Instruction Error ' + ex_message
             exception = NonfatalErrorCodeError(msg, error_code)
 
+if __name__ == '__main__':
+    io = DynamixelIO(port="/dev/ttyUSB0",baudrate=250000)
+    for id in range(1,5):
+        status = io.ping(1)
+        print(status)

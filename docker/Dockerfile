@@ -1,4 +1,4 @@
-FROM ros:kinetic-ros-core
+FROM ros:kinetic-robot
 
 RUN apt update && apt install -y g++ git autogen autoconf build-essential cmake
 
@@ -12,6 +12,7 @@ RUN bin/bash -c "source /opt/ros/kinetic/setup.bash && \
                     cd /hans_ws/ && \
                     catkin_make && \
                     cd src/ && \
+                    git clone -b kinetic-devel https://github.com/ros-controls/ros_control && \
                     git clone https://timyanmuk@bitbucket.org/timym/cyton-robot-ros.git"
 
 # RUN bin/bash -c "source /opt/ros/kinetic/setup.bash && \
