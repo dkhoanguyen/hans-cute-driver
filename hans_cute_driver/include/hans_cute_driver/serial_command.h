@@ -28,7 +28,14 @@ class SerialCommand : public SerialCommandInterface
         void close();
 
         void readResponse();
-        void write();
+        void writeCommand();
+
+    protected:
+        std::shared_ptr<serial::Serial> _serial_port;
+        std::string _port;
+        unsigned int _baudrate;
+        unsigned int _timeout;
+
 };
 
 #endif

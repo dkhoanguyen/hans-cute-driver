@@ -280,8 +280,18 @@ class DynamixelIO(object):
             msg = 'Instruction Error ' + ex_message
             exception = NonfatalErrorCodeError(msg, error_code)
 
+<<<<<<< Updated upstream
 if __name__ == '__main__':
     io = DynamixelIO(port="/dev/ttyUSB0",baudrate=250000)
     for id in range(1,5):
         status = io.ping(1)
         print(status)
+=======
+
+if __name__ == '__main__':
+    io = DynamixelIO(port="/dev/ttyUSB0",baudrate=250000)
+
+    for id in range(1,5):
+        result = io.ping(id)
+        print(result)
+>>>>>>> Stashed changes

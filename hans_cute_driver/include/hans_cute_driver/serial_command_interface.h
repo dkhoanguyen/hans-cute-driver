@@ -5,13 +5,13 @@ class SerialCommandInterface
 {
     public:
         SerialCommandInterface(){};
-        ~SerialCommandInterface(){};
+        virtual ~SerialCommandInterface(){};
 
         virtual void open() = 0;
         virtual void close() = 0;
 
         virtual void readResponse() = 0;
-        virtual void write() = 0;
+        virtual void writeCommand() = 0;
 
 };
 

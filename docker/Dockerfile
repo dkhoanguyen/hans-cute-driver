@@ -13,10 +13,13 @@ RUN bin/bash -c "source /opt/ros/kinetic/setup.bash && \
                     catkin_make && \
                     cd src/ && \
                     git clone -b kinetic-devel https://github.com/ros-controls/ros_control && \
-                    git clone https://timyanmuk@bitbucket.org/timym/cyton-robot-ros.git"
+                    cd /hans_ws/ && \
+                    catkin_make"
 
-# RUN bin/bash -c "source /opt/ros/kinetic/setup.bash && \
-#                     cd /hans_ws/ && \
-#                     catkin_make"
+RUN bin/bash -c "source /opt/ros/kinetic/setup.bash && \
+                    cd /hans_ws/src && \
+                    git clone https://timyanmuk@bitbucket.org/timym/cyton-robot-ros.git && \
+                    cd /hans_ws/ && \
+                    catkin_make"
 
 CMD [ "bash", "-c", "tail -f /dev/null" ] 
