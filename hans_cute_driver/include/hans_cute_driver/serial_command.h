@@ -8,34 +8,53 @@
 #include <cstring>
 #include <limits>
 #include <cmath>
+#include <thread>
+#include <atomic>
 
-#include <signal.h>
-#include <libserial/SerialPort.h>
-#include <libserial/SerialStream.h>
-#include <libserial/SerialStreamBuf.h>
-
+// New native serial library
 #include "serial/serial.h"
 
 #include "serial_command_interface.h"
 
-class SerialCommand : public SerialCommandInterface 
+struct SamplePacket
 {
-    public:
-        SerialCommand(const std::string port, const long baudrate);
-        ~SerialCommand();
+    std::vector<uint8_t> headers; // Headers in HEX
+    unsigned int id; // Position of the id byte
+    unsigned int length; //Position of length byte
+    unsigned int data; //Start position of data byte
+    unsigned int check_sum;
+};
 
-        void open();
-        void close();
+class SerialCommand : public SerialCommandInterface
+{
+public:
+  SerialCommand(const std::string port, const long baudrate);
+  /**
+   * @brief Default constructor
+   *
+   */
+  SerialCommand();
+  ~SerialCommand();
 
-        void readResponse();
-        void writeCommand();
+  virtual void open() const;
+  virtual void close() const;
 
-    protected:
-        std::shared_ptr<serial::Serial> _serial_port;
-        std::string _port;
-        unsigned int _baudrate;
-        unsigned int _timeout;
+  void setPacket(const std::shared_ptr<SamplePacket> sample_packet);
 
+  virtual bool readResponse(std::vector<uint8_t>& response) const;
+  virtual bool writeCommand(const std::vector<uint8_t>& command) const;
+
+protected:
+  std::shared_ptr<serial::Serial> _serial_port;
+  std::string _port;
+  unsigned int _baudrate;
+  unsigned int _timeout;
+
+  unsigned int _num_tries;
+
+  std::shared_ptr<SamplePacket> _sample_packet;
+
+  virtual uint8_t calcCheckSum(std::vector<uint8_t>& data) const = 0;
 };
 
 #endif
