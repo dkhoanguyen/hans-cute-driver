@@ -13,7 +13,7 @@ public:
   bool writeCommand(const std::vector<uint8_t>& command) const;
 
 private:
-  uint8_t uint8_t calcCheckSum(std::vector<uint8_t>& data) const;
+  uint8_t calcCheckSum(std::vector<uint8_t>& data) const;
 };
 
 #endif

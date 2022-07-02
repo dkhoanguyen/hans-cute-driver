@@ -12,6 +12,7 @@ SerialCommand::SerialCommand() : _port("/dev/ttyUSB0"), _baudrate(115200), _time
 
 SerialCommand::~SerialCommand()
 {
+  close();
 }
 
 void SerialCommand::open() const
@@ -87,6 +88,7 @@ bool SerialCommand::writeCommand(const std::vector<uint8_t>& command) const
   catch (const serial::SerialException &se)
   {
     // Handle errors
+    return false;
   }
 }
 
