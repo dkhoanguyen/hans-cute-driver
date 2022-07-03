@@ -20,5 +20,12 @@ bool HansCuteSerial::writeCommand(const std::vector<uint8_t>& command)
 
 uint8_t HansCuteSerial::calcCheckSum(std::vector<uint8_t>& data) const
 {
-  return 0;
+  unsigned int checksum = 0;
+  unsigned int payload_sum = 0;
+  for (int i = 2; i < data.size() - 1; i++)
+  {
+    payload_sum += (int)data.at(i);
+  }
+  checksum = 255 - (payload_sum % 256);
+  return (uint8_t)checksum;
 }

@@ -3,11 +3,7 @@
  *
  */
 #include <iostream>
-#include <stdio.h>
-#include <stdlib.h>
 
-// #include "hans_cute_driver/SerialPort.hpp"
-#include "hans_cute_driver/custom_serial_port.h"
 #include "hans_cute_driver/hans_cute_serial.h"
 
 int main(int argc, char* argv[])
@@ -20,7 +16,7 @@ int main(int argc, char* argv[])
   hans_robot.setSamplePacket(packet);
 
   std::vector<uint8_t> data = { 0xFF, 0xFF, 0x01, 0x02, 0x01, 0xFB };
-  std::cout << hans_robot.writeCommand(data) << std::endl;
+  hans_robot.writeCommand(data);
 
   std::vector<uint8_t> outData;
   hans_robot.readResponse(outData);

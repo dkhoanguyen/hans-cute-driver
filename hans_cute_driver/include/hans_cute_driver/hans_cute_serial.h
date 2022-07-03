@@ -12,6 +12,8 @@ public:
   bool readResponse(std::vector<uint8_t>& response);
   bool writeCommand(const std::vector<uint8_t>& command);
 
+  
+
 private:
   uint8_t calcCheckSum(std::vector<uint8_t>& data) const;
 };

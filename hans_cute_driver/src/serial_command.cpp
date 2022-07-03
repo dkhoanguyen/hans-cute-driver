@@ -40,6 +40,7 @@ bool SerialCommand::readResponse(std::vector<uint8_t>& response)
     return false;
   }
 
+  // To support testing this should be a separate function
   unsigned int num_byte_read = 0;
   for (int i = 0; i < _num_tries; i++)
   {
@@ -62,16 +63,15 @@ bool SerialCommand::readResponse(std::vector<uint8_t>& response)
   {
     if (returned_data.at(i) != _sample_packet.headers.at(i))
     {
-      std::cout << "Incorrect header" << std::endl;
       return false;
     }
   }
 
   // Then verify checksum
-  // if (calcCheckSum(returned_data) != returned_data.at(returned_data.size() - 1))
-  // {
-  //   return false;
-  // }
+  if (calcCheckSum(returned_data) != returned_data.at(returned_data.size() - 1))
+  {
+    return false;
+  }
 
   response = returned_data;
 
