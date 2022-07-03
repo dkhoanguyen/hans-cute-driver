@@ -8,15 +8,14 @@ HansCuteSerial::~HansCuteSerial()
 {
 }
 
-bool HansCuteSerial::readResponse(std::vector<uint8_t>& response) const
+bool HansCuteSerial::readResponse(std::vector<uint8_t>& response)
 {
-  return true;
+  return SerialCommand::readResponse(response);
 }
 
-bool HansCuteSerial::writeCommand(const std::vector<uint8_t>& command) const
+bool HansCuteSerial::writeCommand(const std::vector<uint8_t>& command)
 {
-    // First convert input vector to string
-  return true;
+  return SerialCommand::writeCommand(command);
 }
 
 uint8_t HansCuteSerial::calcCheckSum(std::vector<uint8_t>& data) const

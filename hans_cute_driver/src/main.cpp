@@ -5,45 +5,33 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <chrono>
-#include <thread>
 
-#include "hans_cute_driver/SerialPort.hpp"
-
-using namespace mn::CppLinuxSerial;
+// #include "hans_cute_driver/SerialPort.hpp"
+#include "hans_cute_driver/custom_serial_port.h"
+#include "hans_cute_driver/hans_cute_serial.h"
 
 int main(int argc, char* argv[])
 {
-  //   CustomSerialPort serial_port("/dev/ttyUSB0", 250000, 50);
-  //   serial_port.openPort();
-  //   std::vector<uint8_t> data = { 0xFF, 0xFF, 0x01, 0x02, 0x01, 0xFB };
-  //   serial_port.writeData(data);
-  //   std::vector<uint8_t> outData;
-  //   serial_port.readData(outData);
-
-  //   std::cout << "Received data size:" << outData.size() << std::endl;
-
-  //   for (uint8_t data : outData)
-  //   {
-  //     std::cout << "Received data:" << (int)data << std::endl;
-  //   }
-
-  //   serial_port.closePort();
-  SerialPort serialPort("/dev/ttyUSB0", 250000);
-  serialPort.SetTimeout(-1);  // Block when reading until any data is received
-  serialPort.Open();
+  HansCuteSerial hans_robot("/dev/ttyUSB0", 250000);
+  hans_robot.open();
+  
+  SamplePacket packet;
+  packet.headers = std::vector<uint8_t>({0xFF,0xFF});
+  hans_robot.setSamplePacket(packet);
 
   std::vector<uint8_t> data = { 0xFF, 0xFF, 0x01, 0x02, 0x01, 0xFB };
-  serialPort.WriteBinary(data);
+  std::cout << hans_robot.writeCommand(data) << std::endl;
+
   std::vector<uint8_t> outData;
-  std::string readData;
-  serialPort.ReadBinary(outData);
+  hans_robot.readResponse(outData);
+
   std::cout << "Received data size:" << outData.size() << std::endl;
 
   for (uint8_t data : outData)
   {
     std::cout << "Received data:" << (int)data << std::endl;
   }
-  serialPort.Close();
+
+  hans_robot.close();
   return 0;
 }

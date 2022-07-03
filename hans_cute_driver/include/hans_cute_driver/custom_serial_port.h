@@ -1,9 +1,37 @@
+// ACKNOWLEDGEMENT
+// Special thanks to Geoffrey Hunter and his wonderful explantions and
+// code examples that helped me a lot in understanding how serial 
+// communication works in ubuntu, which then allows me to build this
+// simple library for using in my own project
+// Links: https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#software-flow-control-ixoff-ixon-ixany
+// https://github.com/gbmhunter/CppLinuxSerial
+
 #ifndef _CUSTOM_SERIAL_PORT_H_
 #define _CUSTOM_SERIAL_PORT_H_
 
 #include <string>
 #include <fstream>  // For file I/O (reading/writing to COM port)
 #include <sstream>
+#include <chrono>
+#include <thread>
+
+#include <iostream>
+#include <sstream>
+#include <stdio.h>   // Standard input/output definitions
+#include <string.h>  // String function definitions
+#include <unistd.h>  // UNIX standard function definitions
+#include <fcntl.h>   // File control definitions
+#include <errno.h>   // Error number definitions
+
+#include <system_error>  // For throwing std::system_error
+#include <sys/ioctl.h>   // Used for TCGETS2, which is required for custom baud rates
+#include <sys/file.h>
+#include <cassert>
+
+#include <asm/ioctls.h>
+#include <asm/termbits.h>
+#include <algorithm>
+#include <iterator>
 
 #include <vector>
 #include <asm/ioctls.h>
@@ -30,12 +58,12 @@ enum class NumStopBits
   TWO,
 };
 
-class CustomSerialPort
+class SerialPort
 {
 public:
-  CustomSerialPort();
-  CustomSerialPort(const std::string& port, const speed_t& baud_rate, int32_t timeout);
-  ~CustomSerialPort();
+  SerialPort(const std::string& port, const speed_t& baud_rate, int32_t timeout);
+  SerialPort();
+  virtual ~SerialPort();
 
   // Setters
   void setPort(const std::string& port);
@@ -52,12 +80,13 @@ public:
   bool isOpen() const;
 
   void writeData(const std::vector<uint8_t>& data);
-  void readData(std::vector<uint8_t>& data);
+  void waitData();
+  unsigned int readData(std::vector<uint8_t>& data);
+
+  int available();
 
 private:
-  void configureTermios();
-  termios2 getTermios2();
-  void setTermios2(termios2 tty);
+  void configure();
 
   std::string port_;
   speed_t baud_rate_;

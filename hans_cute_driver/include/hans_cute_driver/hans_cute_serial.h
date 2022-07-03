@@ -9,8 +9,8 @@ public:
   HansCuteSerial(const std::string port, const long baudrate);
   ~HansCuteSerial();
 
-  bool readResponse(std::vector<uint8_t>& response) const;
-  bool writeCommand(const std::vector<uint8_t>& command) const;
+  bool readResponse(std::vector<uint8_t>& response);
+  bool writeCommand(const std::vector<uint8_t>& command);
 
 private:
   uint8_t calcCheckSum(std::vector<uint8_t>& data) const;
