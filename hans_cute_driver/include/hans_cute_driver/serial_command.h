@@ -54,6 +54,8 @@ protected:
 
   SamplePacket _sample_packet;
 
+  std::mutex _comms_mtx;
+
   virtual uint8_t calcCheckSum(std::vector<uint8_t>& data) const = 0;
 };
 

@@ -1,9 +1,9 @@
 #include "hans_cute_driver/serial_command.h"
 
 SerialCommand::SerialCommand(const std::string port, const long baudrate)
-  : _port(port), _baudrate(baudrate), _timeout(20), _num_tries(5)
+  : _port(port), _baudrate(baudrate), _timeout(50), _num_tries(5)
 {
-  _serial_port = std::make_shared<SerialPort>(port, baudrate, 20);
+  _serial_port = std::make_shared<SerialPort>(port, baudrate, _timeout);
 }
 
 SerialCommand::SerialCommand() : SerialCommand("/dev/ttyUSB0",115200)
@@ -34,6 +34,7 @@ void SerialCommand::close() const
 
 bool SerialCommand::readResponse(std::vector<uint8_t>& response)
 {
+  std::unique_lock<std::mutex> lck(_comms_mtx);
   std::vector<uint8_t> returned_data;
   if (_serial_port->available() == 0)
   {
@@ -51,7 +52,6 @@ bool SerialCommand::readResponse(std::vector<uint8_t>& response)
       break;
     }
   }
-
   // Unable to get a response
   if (num_byte_read == 0)
   {
@@ -80,6 +80,7 @@ bool SerialCommand::readResponse(std::vector<uint8_t>& response)
 
 bool SerialCommand::writeCommand(const std::vector<uint8_t>& command)
 {
+  std::unique_lock<std::mutex> lck(_comms_mtx);
   try
   {
     _serial_port->writeData(command);
