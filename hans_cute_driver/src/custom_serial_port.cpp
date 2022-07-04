@@ -87,17 +87,17 @@ bool SerialPort::isOpen() const
   return is_open_;
 }
 
-void SerialPort::writeData(const std::vector<uint8_t>& data)
+void SerialPort::write(const std::vector<uint8_t>& data)
 {
   if (flock(file_desc_, LOCK_EX | LOCK_NB) == -1)
   {
     throw std::runtime_error("Serial port with file descriptor " + std::to_string(file_desc_) +
                              " is already locked by another process.");
   }
-  int writeResult = write(file_desc_, data.data(), data.size());
+  int writeResult = ::write(file_desc_, data.data(), data.size());
 }
 
-void SerialPort::waitData()
+void SerialPort::wait()
 {
   unsigned long start_time =
       std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch())
@@ -110,7 +110,7 @@ void SerialPort::waitData()
     ;
 }
 
-unsigned int SerialPort::readData(std::vector<uint8_t>& data)
+unsigned int SerialPort::read(std::vector<uint8_t>& data)
 {
   data.clear();
   if (flock(file_desc_, LOCK_EX | LOCK_NB) == -1)
@@ -122,7 +122,7 @@ unsigned int SerialPort::readData(std::vector<uint8_t>& data)
   {
     return 0;
   }
-  ssize_t n = read(file_desc_, &read_buffer_[0], read_buffer_size_B_);
+  ssize_t n = ::read(file_desc_, &read_buffer_[0], read_buffer_size_B_);
   if (n > 0)
   {
     std::copy(read_buffer_.begin(), read_buffer_.begin() + n, std::back_inserter(data));

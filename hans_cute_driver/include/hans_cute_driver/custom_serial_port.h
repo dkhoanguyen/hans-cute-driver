@@ -79,9 +79,9 @@ public:
 
   bool isOpen() const;
 
-  void writeData(const std::vector<uint8_t>& data);
-  void waitData();
-  unsigned int readData(std::vector<uint8_t>& data);
+  void write(const std::vector<uint8_t>& data);
+  void wait();
+  unsigned int read(std::vector<uint8_t>& data);
 
   int available();
 

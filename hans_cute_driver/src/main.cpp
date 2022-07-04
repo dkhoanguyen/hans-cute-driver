@@ -4,11 +4,11 @@
  */
 #include <iostream>
 
-#include "hans_cute_driver/hans_cute_serial.h"
+#include "hans_cute_driver/hans_cute_driver.h"
 
 int main(int argc, char* argv[])
 {
-  HansCuteSerial hans_robot("/dev/ttyUSB0", 250000);
+  HansCuteDriver hans_robot("/dev/ttyUSB0", 250000);
   hans_robot.open();
 
   SamplePacket packet;

@@ -12,6 +12,7 @@ SerialCommand::SerialCommand() : SerialCommand("/dev/ttyUSB0",115200)
 
 SerialCommand::~SerialCommand()
 {
+  std::cout << "SerialCommand Destructor" << std::endl;
   close();
 }
 
@@ -45,7 +46,7 @@ bool SerialCommand::readResponse(std::vector<uint8_t>& response)
   unsigned int num_byte_read = 0;
   for (int i = 0; i < _num_tries; i++)
   {
-    num_byte_read = _serial_port->readData(returned_data);
+    num_byte_read = _serial_port->read(returned_data);
     // If we actually receive data
     if (num_byte_read > 0)
     {
@@ -83,8 +84,8 @@ bool SerialCommand::writeCommand(const std::vector<uint8_t>& command)
   std::unique_lock<std::mutex> lck(_comms_mtx);
   try
   {
-    _serial_port->writeData(command);
-    _serial_port->waitData();
+    _serial_port->write(command);
+    _serial_port->wait();
     return true;
   }
   catch (const std::exception &se)

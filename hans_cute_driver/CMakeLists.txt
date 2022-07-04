@@ -135,6 +135,7 @@ set(${PROJECT_NAME}_SOURCES
   src/custom_serial_port.cpp
   src/serial_command.cpp
   src/hans_cute_serial.cpp
+  src/hans_cute_driver.cpp
   src/main.cpp)
 add_executable(${PROJECT_NAME}_node ${${PROJECT_NAME}_SOURCES})
 
