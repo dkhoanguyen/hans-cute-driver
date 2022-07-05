@@ -8,7 +8,7 @@
 
 int main(int argc, char* argv[])
 {
-  HansCuteDriver hans_robot("/dev/ttyUSB0", 250000);
+  HansCuteRobot::Driver hans_robot("/dev/ttyUSB0", 250000);
   hans_robot.open();
 
   SamplePacket packet;

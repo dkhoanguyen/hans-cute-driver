@@ -1,10 +1,10 @@
 #include "hans_cute_driver/hans_cute_driver.h"
 
-HansCuteDriver::HansCuteDriver(const std::string port, const long baudrate) : HansCuteSerial(port, baudrate)
+HansCuteRobot::Driver::Driver(const std::string port, const long baudrate) : HansCuteRobot::SerialComms(port, baudrate)
 {
 }
 
-HansCuteDriver::~HansCuteDriver()
+HansCuteRobot::Driver::~Driver()
 {
-  std::cout << "HansCuteDriver destructor" << std::endl;
+  std::cout << "Driver destructor" << std::endl;
 }

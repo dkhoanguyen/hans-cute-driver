@@ -1,25 +1,25 @@
 #include "hans_cute_driver/hans_cute_serial.h"
 
-HansCuteSerial::HansCuteSerial(const std::string port, const long baudrate) : SerialCommand(port, baudrate)
+HansCuteRobot::SerialComms::SerialComms(const std::string port, const long baudrate) : SerialCommand(port, baudrate)
 {
 }
 
-HansCuteSerial::~HansCuteSerial()
+HansCuteRobot::SerialComms::~SerialComms()
 {
-  std::cout << "HansCuteSerial Destructor" << std::endl;
+  std::cout << "SerialComms Destructor" << std::endl;
 }
 
-bool HansCuteSerial::readResponse(std::vector<uint8_t> &response)
+bool HansCuteRobot::SerialComms::readResponse(std::vector<uint8_t> &response)
 {
   return SerialCommand::readResponse(response);
 }
 
-bool HansCuteSerial::writeCommand(const std::vector<uint8_t> &command)
+bool HansCuteRobot::SerialComms::writeCommand(const std::vector<uint8_t> &command)
 {
   return SerialCommand::writeCommand(command);
 }
 
-uint8_t HansCuteSerial::calcCheckSum(std::vector<uint8_t> &data) const
+uint8_t HansCuteRobot::SerialComms::calcCheckSum(std::vector<uint8_t> &data) const
 {
   unsigned int checksum = 0;
   unsigned int payload_sum = 0;
@@ -34,7 +34,7 @@ uint8_t HansCuteSerial::calcCheckSum(std::vector<uint8_t> &data) const
 }
 
 //
-bool HansCuteSerial::read(const uint8_t &id, const uint8_t &address, const uint8_t &size,
+bool HansCuteRobot::SerialComms::read(const uint8_t &id, const uint8_t &address, const uint8_t &size,
                           std::vector<uint8_t> &returned_data, unsigned long &timestamp)
 {
   // Number of bytes following standard header (0xFF, 0xFF, id, length)
@@ -56,7 +56,7 @@ bool HansCuteSerial::read(const uint8_t &id, const uint8_t &address, const uint8
   return readResponse(returned_data);
 }
 
-bool HansCuteSerial::write(const uint8_t &id, const uint8_t &address, const std::vector<uint8_t> &data,
+bool HansCuteRobot::SerialComms::write(const uint8_t &id, const uint8_t &address, const std::vector<uint8_t> &data,
                            std::vector<uint8_t> &returned_data, unsigned long &timestamp)
 {
   // Number of bytes following standard header (0xFF, 0xFF, id, length)
@@ -85,7 +85,7 @@ bool HansCuteSerial::write(const uint8_t &id, const uint8_t &address, const std:
   return readResponse(returned_data);
 }
 
-bool HansCuteSerial::syncWrite(const uint8_t &address, const std::vector<std::vector<uint8_t>> &data)
+bool HansCuteRobot::SerialComms::syncWrite(const uint8_t &address, const std::vector<std::vector<uint8_t>> &data)
 {
   // First flatten the input data
   std::vector<uint8_t> flatten_data;
@@ -118,7 +118,7 @@ bool HansCuteSerial::syncWrite(const uint8_t &address, const std::vector<std::ve
   return readResponse(returned_data);
 }
 
-bool HansCuteSerial::ping(const uint8_t &id, std::vector<uint8_t> &returned_data)
+bool HansCuteRobot::SerialComms::ping(const uint8_t &id, std::vector<uint8_t> &returned_data)
 {
   uint8_t length = 2;
   std::vector<uint8_t> packet = {0xFF, 0xFF, id, length, (uint8_t)InstructionSet::DXL_PING};
