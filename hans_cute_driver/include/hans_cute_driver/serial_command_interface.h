@@ -14,6 +14,8 @@ public:
 
   virtual bool readResponse(std::vector<uint8_t>& response) = 0;
   virtual bool writeCommand(const std::vector<uint8_t>& command) = 0;
+
+  virtual uint8_t calcCheckSum(std::vector<uint8_t>& data) const = 0;
 };
 
 #endif

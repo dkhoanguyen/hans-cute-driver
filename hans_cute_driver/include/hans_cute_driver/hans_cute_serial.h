@@ -21,7 +21,6 @@ public:
 
   bool ping(const uint8_t& id, std::vector<uint8_t>& returned_data);
 
-private:
   uint8_t calcCheckSum(std::vector<uint8_t>& data) const;
 };
 

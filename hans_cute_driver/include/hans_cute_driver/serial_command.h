@@ -44,6 +44,8 @@ public:
   virtual bool readResponse(std::vector<uint8_t>& response) override;
   virtual bool writeCommand(const std::vector<uint8_t>& command) override;
 
+  virtual uint8_t calcCheckSum(std::vector<uint8_t>& data) const = 0;
+
 protected:
   std::shared_ptr<SerialPort> _serial_port;
   std::string _port;
@@ -55,8 +57,6 @@ protected:
   SamplePacket _sample_packet;
 
   std::mutex _comms_mtx;
-
-  virtual uint8_t calcCheckSum(std::vector<uint8_t>& data) const = 0;
 };
 
 #endif

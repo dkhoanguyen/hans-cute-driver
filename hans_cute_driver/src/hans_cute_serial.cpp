@@ -9,17 +9,17 @@ HansCuteSerial::~HansCuteSerial()
   std::cout << "HansCuteSerial Destructor" << std::endl;
 }
 
-bool HansCuteSerial::readResponse(std::vector<uint8_t>& response)
+bool HansCuteSerial::readResponse(std::vector<uint8_t> &response)
 {
   return SerialCommand::readResponse(response);
 }
 
-bool HansCuteSerial::writeCommand(const std::vector<uint8_t>& command)
+bool HansCuteSerial::writeCommand(const std::vector<uint8_t> &command)
 {
   return SerialCommand::writeCommand(command);
 }
 
-uint8_t HansCuteSerial::calcCheckSum(std::vector<uint8_t>& data) const
+uint8_t HansCuteSerial::calcCheckSum(std::vector<uint8_t> &data) const
 {
   unsigned int checksum = 0;
   unsigned int payload_sum = 0;
@@ -34,21 +34,21 @@ uint8_t HansCuteSerial::calcCheckSum(std::vector<uint8_t>& data) const
 }
 
 //
-bool HansCuteSerial::read(const uint8_t& id, const uint8_t& address, const uint8_t& size,
-                          std::vector<uint8_t>& returned_data, unsigned long& timestamp)
+bool HansCuteSerial::read(const uint8_t &id, const uint8_t &address, const uint8_t &size,
+                          std::vector<uint8_t> &returned_data, unsigned long &timestamp)
 {
   // Number of bytes following standard header (0xFF, 0xFF, id, length)
   uint8_t length = 4;
-  std::vector<uint8_t> packet = { 0xFF, 0xFF, id, length, (uint8_t)InstructionSet::DXL_READ_DATA, address, size };
-  
+  std::vector<uint8_t> packet = {0xFF, 0xFF, id, length, (uint8_t)InstructionSet::DXL_READ_DATA, address, size};
+
   // directly from AX-12 manual:
   // Check Sum = ~ (ID + LENGTH + INSTRUCTION + PARAM_1 + ... + PARAM_N)
   // If the calculated value is > 255, the lower byte is the check sum.
-  uint8_t checksum = 255 -((id + length + (uint8_t)InstructionSet::DXL_READ_DATA + address + size) % 256);
+  uint8_t checksum = 255 - ((id + length + (uint8_t)InstructionSet::DXL_READ_DATA + address + size) % 256);
   packet.push_back(checksum);
 
   // Thread safe execution of
-  if(!writeCommand(packet))
+  if (!writeCommand(packet))
   {
     return false;
   }
@@ -56,19 +56,19 @@ bool HansCuteSerial::read(const uint8_t& id, const uint8_t& address, const uint8
   return readResponse(returned_data);
 }
 
-bool HansCuteSerial::write(const uint8_t& id, const uint8_t& address, const std::vector<uint8_t>& data,
-                           std::vector<uint8_t>& returned_data, unsigned long& timestamp)
+bool HansCuteSerial::write(const uint8_t &id, const uint8_t &address, const std::vector<uint8_t> &data,
+                           std::vector<uint8_t> &returned_data, unsigned long &timestamp)
 {
   // Number of bytes following standard header (0xFF, 0xFF, id, length)
   uint8_t length = 3 + (uint8_t)data.size();
-  std::vector<uint8_t> packet = { 0xFF, 0xFF, id, length, (uint8_t)InstructionSet::DXL_WRITE_DATA, address };
+  std::vector<uint8_t> packet = {0xFF, 0xFF, id, length, (uint8_t)InstructionSet::DXL_WRITE_DATA, address};
   packet.insert(std::end(packet), std::begin(data), std::end(data));
-  
+
   // directly from AX-12 manual:
   // Check Sum = ~ (ID + LENGTH + INSTRUCTION + PARAM_1 + ... + PARAM_N)
   // If the calculated value is > 255, the lower byte is the check sum.
   unsigned int sum = 0;
-  for(uint8_t data_point : data)
+  for (uint8_t data_point : data)
   {
     sum += data_point;
   }
@@ -77,7 +77,7 @@ bool HansCuteSerial::write(const uint8_t& id, const uint8_t& address, const std:
   packet.push_back(checksum);
 
   // Thread safe execution of
-  if(!writeCommand(packet))
+  if (!writeCommand(packet))
   {
     return false;
   }
@@ -85,16 +85,44 @@ bool HansCuteSerial::write(const uint8_t& id, const uint8_t& address, const std:
   return readResponse(returned_data);
 }
 
-bool HansCuteSerial::syncWrite(const uint8_t& address, const std::vector<std::vector<uint8_t> >& data)
+bool HansCuteSerial::syncWrite(const uint8_t &address, const std::vector<std::vector<uint8_t>> &data)
 {
-  return false;
+  // First flatten the input data
+  std::vector<uint8_t> flatten_data;
+  unsigned int sum = 0;
+  for (std::vector<uint8_t> servo : data)
+  {
+    for (uint8_t data_point : servo)
+    {
+      flatten_data.push_back(data_point);
+      sum += data_point;
+    }
+  }
+  // Number of bytes following standard header (0xFF, 0xFF, id, length) plus data
+  uint8_t length = 4 + flatten_data.size();
+  uint8_t servo_data_length = data.at(0).size() - 1;
+  std::vector<uint8_t> packet = {0xFF, 0xFF, (uint8_t)BroadcastConstant::DXL_BROADCAST, length, (uint8_t)InstructionSet::DXL_SYNC_WRITE, address, servo_data_length};
+  packet.insert(std::end(packet), std::begin(flatten_data), std::end(flatten_data));
+  
+  sum += (uint8_t)BroadcastConstant::DXL_BROADCAST + length + (uint8_t)InstructionSet::DXL_SYNC_WRITE + address + servo_data_length;
+  uint8_t checksum = 255 - (sum % 256);
+  packet.push_back(checksum);
+
+  // Thread safe execution of
+  if (!writeCommand(packet))
+  {
+    return false;
+  }
+  // Read response ans return data
+  std::vector<uint8_t> returned_data;
+  return readResponse(returned_data);
 }
 
-bool HansCuteSerial::ping(const uint8_t& id, std::vector<uint8_t>& returned_data)
+bool HansCuteSerial::ping(const uint8_t &id, std::vector<uint8_t> &returned_data)
 {
   uint8_t length = 2;
-  std::vector<uint8_t> packet = { 0xFF, 0xFF, id, length, (uint8_t)InstructionSet::DXL_PING };
-  
+  std::vector<uint8_t> packet = {0xFF, 0xFF, id, length, (uint8_t)InstructionSet::DXL_PING};
+
   // directly from AX-12 manual:
   // Check Sum = ~ (ID + LENGTH + INSTRUCTION + PARAM_1 + ... + PARAM_N)
   // If the calculated value is > 255, the lower byte is the check sum.
@@ -103,12 +131,12 @@ bool HansCuteSerial::ping(const uint8_t& id, std::vector<uint8_t>& returned_data
   packet.push_back(checksum);
 
   // Thread safe execution of
-  if(!writeCommand(packet))
+  if (!writeCommand(packet))
   {
     return false;
   }
   // Read response ans return data
-  if(!readResponse(returned_data))
+  if (!readResponse(returned_data))
   {
     return false;
   }
