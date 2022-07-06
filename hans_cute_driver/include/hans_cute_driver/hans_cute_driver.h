@@ -6,11 +6,11 @@
 
 namespace HansCuteRobot
 {
-class Driver : public SerialComms
+class RobotDriver : public SerialComms
 {
 public:
-  Driver(const std::string port, const long baudrate);
-  ~Driver();
+  RobotDriver(const std::string port, const long baudrate);
+  ~RobotDriver();
 
   //====================================================================//
   // These function modify EEPROM data which persists after power cycle //
@@ -19,6 +19,11 @@ public:
   // These can be left until the end as they are relatively unimportant
   bool setID(const uint8_t& old_id, const uint8_t& new_id);
   bool setBaudrate(const uint8_t& servo_id, const long baudrate);
+  
+  bool setReturnDelayTime();
+  bool setAngleLimits();
+  bool setDriveMode();
+  bool setVoltageLimits();
 
   //===============================================================//
   // These functions can send multiple commands to a single servo  //
