@@ -1,6 +1,7 @@
 #include "hans_cute_driver/hans_cute_driver.h"
 
-HansCuteRobot::RobotDriver::RobotDriver(const std::string port, const long baudrate) : HansCuteRobot::SerialComms(port, baudrate)
+HansCuteRobot::RobotDriver::RobotDriver(const std::string port, const long baudrate)
+  : HansCuteRobot::SerialComms(port, baudrate)
 {
 }
 
@@ -14,10 +15,10 @@ HansCuteRobot::RobotDriver::~RobotDriver()
 //====================================================================//
 
 // These can be left until the end as they are relatively unimportant
-bool HansCuteRobot::RobotDriver::setID(const uint8_t &old_id, const uint8_t &new_id)
+bool HansCuteRobot::RobotDriver::setID(const uint8_t& old_id, const uint8_t& new_id)
 {
 }
-bool HansCuteRobot::RobotDriver::setBaudrate(const uint8_t &servo_id, const long baudrate)
+bool HansCuteRobot::RobotDriver::setBaudrate(const uint8_t& servo_id, const long baudrate)
 {
 }
 
@@ -59,45 +60,111 @@ bool HansCuteRobot::RobotDriver::setPGain()
 bool HansCuteRobot::RobotDriver::setAcceleration()
 {
 }
-bool HansCuteRobot::RobotDriver::setPosition() {}
-bool HansCuteRobot::RobotDriver::setSpeed() {}
+bool HansCuteRobot::RobotDriver::setPosition(const uint8_t& servo_id, const unsigned int& position)
+{
+  std::vector<uint8_t> raw_postion = HansCuteRobot::ServoPosition::getRawPosition(position);
+  std::vector<uint8_t> returned_data;
+  unsigned long timestamp;
+  write(servo_id, (uint8_t)ControlTableConstant::DXL_GOAL_POSITION_L, raw_postion, returned_data, timestamp);
+  for (uint8_t data : returned_data)
+  {
+    std::cout << "Received data:" << std::hex << (int)data << std::endl;
+  }
+  return true;
+}
+bool HansCuteRobot::RobotDriver::setSpeed()
+{
+}
 
-bool HansCuteRobot::RobotDriver::setTorqueLimit() {}
-bool HansCuteRobot::RobotDriver::setGoalTorque() {}
+bool HansCuteRobot::RobotDriver::setTorqueLimit()
+{
+}
+bool HansCuteRobot::RobotDriver::setGoalTorque()
+{
+}
 
-bool HansCuteRobot::RobotDriver::setPositionAndSpeed() {}
+bool HansCuteRobot::RobotDriver::setPositionAndSpeed()
+{
+}
 
 //===============================================================//
 // These functions can send multiple commands to multiple servos //
 //===============================================================//
 
-bool HansCuteRobot::RobotDriver::setMultiTorqueEnabled() {}
+bool HansCuteRobot::RobotDriver::setMultiTorqueEnabled()
+{
+}
 
 // Range is between 0 -> 255
-bool HansCuteRobot::RobotDriver::setMultiComplianceMargin() {}
-bool HansCuteRobot::RobotDriver::setMultiComplianceSlope() {}
+bool HansCuteRobot::RobotDriver::setMultiComplianceMargin()
+{
+}
+bool HansCuteRobot::RobotDriver::setMultiComplianceSlope()
+{
+}
 
 // Position value ranges from 0 -> 4095 (0xFFF), unit is 0.088 degree
-bool HansCuteRobot::RobotDriver::setMultiPosition() {}
-bool HansCuteRobot::RobotDriver::setMultiSpeed() {}
+bool HansCuteRobot::RobotDriver::setMultiPosition()
+{
+}
+bool HansCuteRobot::RobotDriver::setMultiSpeed()
+{
+}
 
-bool HansCuteRobot::RobotDriver::setMultiTorqueLimit() {}
-bool HansCuteRobot::RobotDriver::setMultiPositionAndSpeed() {}
+bool HansCuteRobot::RobotDriver::setMultiTorqueLimit()
+{
+}
+bool HansCuteRobot::RobotDriver::setMultiPositionAndSpeed()
+{
+}
 
 //===============================//
 // Servo status access functions //
 //===============================//
 
-bool HansCuteRobot::RobotDriver::getModelNumber() {}
-bool HansCuteRobot::RobotDriver::getFirmwareVersion() {}
-bool HansCuteRobot::RobotDriver::getReturnDelayTime() {}
+bool HansCuteRobot::RobotDriver::getModelNumber()
+{
+}
+bool HansCuteRobot::RobotDriver::getFirmwareVersion()
+{
+}
+bool HansCuteRobot::RobotDriver::getReturnDelayTime()
+{
+}
 
-bool HansCuteRobot::RobotDriver::getAngleLimits() {}
-bool HansCuteRobot::RobotDriver::getDriveMode() {}
+bool HansCuteRobot::RobotDriver::getAngleLimits()
+{
+}
+bool HansCuteRobot::RobotDriver::getDriveMode()
+{
+}
 
-bool HansCuteRobot::RobotDriver::getVoltageLimits() {}
-bool HansCuteRobot::RobotDriver::getPosition() {}
-bool HansCuteRobot::RobotDriver::getSpeed() {}
+bool HansCuteRobot::RobotDriver::getVoltageLimits()
+{
+}
+bool HansCuteRobot::RobotDriver::getPosition()
+{
+}
+bool HansCuteRobot::RobotDriver::getSpeed()
+{
+}
 
-bool HansCuteRobot::RobotDriver::getVoltage() {}
-bool HansCuteRobot::RobotDriver::getCurrent() {}
+bool HansCuteRobot::RobotDriver::getVoltage()
+{
+}
+bool HansCuteRobot::RobotDriver::getCurrent()
+{
+}
+
+bool HansCuteRobot::RobotDriver::getFeedback(int servo_id, ServoFeedback& feedback)
+{
+  std::vector<uint8_t> response;
+  unsigned long timestamp = 0;
+  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::DXL_GOAL_POSITION_L, 17, response, timestamp))
+  {
+    return false;
+  }
+
+  feedback = ServoFeedback::getData((uint8_t)servo_id, response, timestamp);
+  return true;
+}

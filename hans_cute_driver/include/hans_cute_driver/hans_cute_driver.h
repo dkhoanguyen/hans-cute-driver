@@ -3,6 +3,7 @@
 
 #include "hans_cute_const.h"
 #include "hans_cute_serial.h"
+#include "hans_cute_datatype.h"
 
 namespace HansCuteRobot
 {
@@ -19,7 +20,7 @@ public:
   // These can be left until the end as they are relatively unimportant
   bool setID(const uint8_t& old_id, const uint8_t& new_id);
   bool setBaudrate(const uint8_t& servo_id, const long baudrate);
-  
+
   bool setReturnDelayTime();
   bool setAngleLimits();
   bool setDriveMode();
@@ -37,7 +38,7 @@ public:
   bool setPGain();
 
   bool setAcceleration();
-  bool setPosition();
+  bool setPosition(const uint8_t& servo_id, const unsigned int& position);
   bool setSpeed();
 
   bool setTorqueLimit();
@@ -79,6 +80,8 @@ public:
 
   bool getVoltage();
   bool getCurrent();
+
+  bool getFeedback(int servo_id, ServoFeedback& feedback);
 };
 };  // namespace HansCuteRobot
 
