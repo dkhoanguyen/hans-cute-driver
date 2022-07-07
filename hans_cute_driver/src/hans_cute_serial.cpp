@@ -25,7 +25,7 @@ uint8_t HansCuteRobot::SerialComms::calcCheckSum(std::vector<uint8_t> &data) con
   unsigned int payload_sum = 0;
   unsigned int bytes_to_read = data.at(_sample_packet.length); // Add ID and length as well
 
-  for (int i = 2; i < 2 + bytes_to_read; i++)
+  for (int i = 2; i <= 2 + bytes_to_read; i++)
   {
     payload_sum += (int)data.at(i);
   }
@@ -79,6 +79,7 @@ bool HansCuteRobot::SerialComms::write(const uint8_t &id, const uint8_t &address
   // Thread safe execution of
   if (!writeCommand(packet))
   {
+    std::cout << "Failed to write packet" << std::endl;
     return false;
   }
   // Read response ans return data

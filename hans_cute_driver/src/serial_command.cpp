@@ -6,7 +6,7 @@ SerialCommand::SerialCommand(const std::string port, const long baudrate)
   _serial_port = std::make_shared<SerialPort>(port, baudrate, _timeout);
 }
 
-SerialCommand::SerialCommand() : SerialCommand("/dev/ttyUSB0",115200)
+SerialCommand::SerialCommand() : SerialCommand("/dev/ttyUSB0", 115200)
 {
 }
 
@@ -58,7 +58,6 @@ bool SerialCommand::readResponse(std::vector<uint8_t>& response)
   {
     return false;
   }
-
   // Verify header first
   for (int i = 0; i < _sample_packet.headers.size(); i++)
   {
@@ -67,10 +66,10 @@ bool SerialCommand::readResponse(std::vector<uint8_t>& response)
       return false;
     }
   }
-
   // Then verify checksum
   if (calcCheckSum(returned_data) != returned_data.at(returned_data.size() - 1))
   {
+    std::cout << "ChecksumError" << std::endl;
     return false;
   }
 
@@ -88,7 +87,7 @@ bool SerialCommand::writeCommand(const std::vector<uint8_t>& command)
     _serial_port->wait();
     return true;
   }
-  catch (const std::exception &se)
+  catch (const std::exception& se)
   {
     // Handle errors
     return false;

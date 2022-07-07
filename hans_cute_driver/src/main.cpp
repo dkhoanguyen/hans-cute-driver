@@ -17,8 +17,8 @@ int main(int argc, char* argv[])
   packet.id = 2;
   packet.length = 3;
   hans_robot.setSamplePacket(packet);
-
-  for (int i = 7; i <= 7; i++)
+  
+  for (int i = 6; i <= 6; i++)
   {
     // std::vector<uint8_t> outData;
     // hans_robot.ping(i, outData);
@@ -28,11 +28,17 @@ int main(int argc, char* argv[])
     // {
     //   std::cout << "Received data:" << std::hex << (int)data << std::endl;
     // }
-    HansCuteRobot::ServoFeedback feedback;
-    hans_robot.getFeedback(i,feedback);
-    std::cout << feedback << std::endl;
-    std::cout << "=======" << std::endl;
-    hans_robot.setPosition(i,400);
+    // HansCuteRobot::ServoFeedback feedback;
+    // hans_robot.getFeedback(i,feedback);
+    // std::cout << feedback << std::endl;
+    // std::cout << "=======" << std::endl;
+    hans_robot.setPosition(i,2000);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    hans_robot.setSpeed(i,300);
+    hans_robot.getSpeed(i);
+    // unsigned int model_number = 0;
+    // hans_robot.getModelNumber(i,model_number);
+    // std::cout <<(int) model_number << std::endl;
   }
 
   // std::vector<uint8_t> data = { 0xFF, 0xFF, 0x01, 0x02, 0x01, 0xFB };

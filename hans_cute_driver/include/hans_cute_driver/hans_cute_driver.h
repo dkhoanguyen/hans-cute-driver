@@ -39,7 +39,7 @@ public:
 
   bool setAcceleration();
   bool setPosition(const uint8_t& servo_id, const unsigned int& position);
-  bool setSpeed();
+  bool setSpeed(const uint8_t& servo_id, const unsigned int& speed);
 
   bool setTorqueLimit();
   bool setGoalTorque();
@@ -67,7 +67,7 @@ public:
   // Servo status access functions //
   //===============================//
 
-  bool getModelNumber();
+  bool getModelNumber(const int& servo_id, unsigned int& model_number);
   bool getFirmwareVersion();
   bool getReturnDelayTime();
 
@@ -75,13 +75,13 @@ public:
   bool getDriveMode();
 
   bool getVoltageLimits();
-  bool getPosition();
-  bool getSpeed();
+  bool getPosition(const int& servo_id);
+  bool getSpeed(const int& servo_id);
 
   bool getVoltage();
   bool getCurrent();
 
-  bool getFeedback(int servo_id, ServoFeedback& feedback);
+  bool getFeedback(const int& servo_id, ServoFeedback& feedback);
 };
 };  // namespace HansCuteRobot
 

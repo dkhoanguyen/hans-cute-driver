@@ -72,8 +72,17 @@ bool HansCuteRobot::RobotDriver::setPosition(const uint8_t& servo_id, const unsi
   }
   return true;
 }
-bool HansCuteRobot::RobotDriver::setSpeed()
+bool HansCuteRobot::RobotDriver::setSpeed(const uint8_t& servo_id, const unsigned int& speed)
 {
+  std::vector<uint8_t> raw_speed = HansCuteRobot::ServoSpeed::getRawSpeed(speed);
+  std::vector<uint8_t> returned_data;
+  unsigned long timestamp;
+  write(servo_id, (uint8_t)ControlTableConstant::DXL_GOAL_SPEED_L, raw_speed, returned_data, timestamp);
+  for (uint8_t data : returned_data)
+  {
+    std::cout << "Received data:" << std::hex << (int)data << std::endl;
+  }
+  return true;
 }
 
 bool HansCuteRobot::RobotDriver::setTorqueLimit()
@@ -122,8 +131,20 @@ bool HansCuteRobot::RobotDriver::setMultiPositionAndSpeed()
 // Servo status access functions //
 //===============================//
 
-bool HansCuteRobot::RobotDriver::getModelNumber()
+bool HansCuteRobot::RobotDriver::getModelNumber(const int& servo_id, unsigned int& model_number)
 {
+  std::vector<uint8_t> response;
+  unsigned long timestamp = 0;
+  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::DXL_MODEL_NUMBER_L, 2, response, timestamp))
+  {
+    return false;
+  }
+  for (uint8_t data : response)
+  {
+    std::cout << "Received data:" << std::hex << (int)data << std::endl;
+  }
+  model_number = HansCuteRobot::ModelNumber::getData(response);
+  return true;
 }
 bool HansCuteRobot::RobotDriver::getFirmwareVersion()
 {
@@ -142,11 +163,27 @@ bool HansCuteRobot::RobotDriver::getDriveMode()
 bool HansCuteRobot::RobotDriver::getVoltageLimits()
 {
 }
-bool HansCuteRobot::RobotDriver::getPosition()
+bool HansCuteRobot::RobotDriver::getPosition(const int& servo_id)
 {
+  std::vector<uint8_t> response;
+  unsigned long timestamp = 0;
+  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::DXL_PRESENT_POSITION_L, 2, response, timestamp))
+  {
+    return false;
+  }
+  std::cout <<std::dec<< (int)HansCuteRobot::ServoPosition::getPosition(response) << std::endl;
+  return true;
 }
-bool HansCuteRobot::RobotDriver::getSpeed()
+bool HansCuteRobot::RobotDriver::getSpeed(const int& servo_id)
 {
+  std::vector<uint8_t> response;
+  unsigned long timestamp = 0;
+  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::DXL_PRESENT_SPEED_L, 2, response, timestamp))
+  {
+    return false;
+  }
+  std::cout <<std::dec<< (int)HansCuteRobot::ServoSpeed::getSpeed(response) << std::endl;
+  return true;
 }
 
 bool HansCuteRobot::RobotDriver::getVoltage()
@@ -156,7 +193,7 @@ bool HansCuteRobot::RobotDriver::getCurrent()
 {
 }
 
-bool HansCuteRobot::RobotDriver::getFeedback(int servo_id, ServoFeedback& feedback)
+bool HansCuteRobot::RobotDriver::getFeedback(const int& servo_id, ServoFeedback& feedback)
 {
   std::vector<uint8_t> response;
   unsigned long timestamp = 0;

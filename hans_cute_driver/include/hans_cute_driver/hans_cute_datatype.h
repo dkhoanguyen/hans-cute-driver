@@ -4,6 +4,18 @@
 #include "serial_command.h"
 namespace HansCuteRobot
 {
+// struct DriveMode
+// {
+//   static
+// };
+
+struct ModelNumber
+{
+  static unsigned int getData(std::vector<uint8_t> raw_data)
+  {
+    return (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
+  }
+};
 struct VoltageLimits
 {
   double min;
@@ -53,6 +65,10 @@ struct ServoSpeed
       speed = 1023;
     }
     return speed;
+  };
+  static std::vector<uint8_t> getRawSpeed(unsigned int speed)
+  {
+    return std::vector<uint8_t>({ (uint8_t)(speed % 256), (uint8_t)(speed >> 8) });
   };
 };
 
