@@ -6,11 +6,11 @@
 
 namespace HansCuteRobot
 {
-class SerialComms : public SerialCommand
+class ServoSerialComms : public SerialCommand
 {
 public:
-  SerialComms(const std::string port, const long baudrate);
-  ~SerialComms();
+  ServoSerialComms(const std::string port, const long baudrate);
+  ~ServoSerialComms();
 
   bool readResponse(std::vector<uint8_t>& response);
   bool writeCommand(const std::vector<uint8_t>& command);

@@ -1,6 +1,11 @@
 #ifndef _HANS_CUTE_CONST_H_
 #define _HANS_CUTE_CONST_H_
 
+#include <string>
+#include <map>
+
+namespace HansCuteRobot
+{
 enum class ControlTableConstant
 {
   DXL_MODEL_NUMBER_L = 0,
@@ -123,4 +128,25 @@ enum class UtilsParameter
 #define KGCM_TO_NM 0.0980665       // 1 kg-cm is that many N-m
 #define RPM_TO_RADSEC 0.104719755  // 1 RPM is that many rad/sec
 
+// Servo model
+struct ServoModel
+{
+  std::string name;
+  unsigned int encoder_resolution;
+  double range_degrees;
+  double torque_per_volt;
+  double velocity_per_volt;
+  double rpm_per_tick;
+};
+
+static const ServoModel MX28{ "MX-28", 4096, 360.0, 6.0 / 12.0, (36 * RPM_TO_RADSEC) / 12.0, 0.114 / 2.5 };
+static const ServoModel MX64{ "MX-64", 4096, 360.0, 6.0 / 12.0, (32 * RPM_TO_RADSEC) / 12.0, 0.114 / 2.8 };
+
+static const std::map<unsigned int, ServoModel> ModelToParams = {
+  {29,MX28},
+  {310, MX64}
+};
+
+
+};  // namespace HansCuteRobot
 #endif

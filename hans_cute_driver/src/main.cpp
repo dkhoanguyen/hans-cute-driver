@@ -9,7 +9,7 @@
 
 int main(int argc, char* argv[])
 {
-  HansCuteRobot::RobotDriver hans_robot("/dev/ttyUSB0", 250000);
+  HansCuteRobot::ServoDriver hans_robot("/dev/ttyUSB0", 250000);
   hans_robot.open();
 
   SamplePacket packet;

@@ -41,6 +41,17 @@ struct AngleLimits
     angle_limits.ccw = (unsigned int)(raw_data.at(7) + (raw_data.at(8) << 8));
     return angle_limits;
   };
+
+  static std::vector<uint8_t> getRawData(unsigned int min_angle, unsigned int max_angle)
+  {
+    uint8_t min_angle_low = (min_angle % 256);
+    uint8_t min_angle_high = (min_angle >> 8);
+
+    uint8_t max_angle_low = (max_angle % 256);
+    uint8_t max_angle_high = (max_angle >> 8);
+
+    return std::vector<uint8_t>({ min_angle_low, min_angle_high, max_angle_low, max_angle_high });
+  };
 };
 struct ServoPosition
 {
