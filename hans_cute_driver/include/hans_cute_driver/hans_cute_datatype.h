@@ -1,14 +1,11 @@
 #ifndef _HANS_CUTE_DATATYPE_H_
 #define _HANS_CUTE_DATATYPE_H_
 
+#include <cmath>
+
 #include "serial_command.h"
 namespace HansCuteRobot
 {
-// struct DriveMode
-// {
-//   static
-// };
-
 struct ModelNumber
 {
   static unsigned int getData(std::vector<uint8_t> raw_data)
@@ -55,12 +52,12 @@ struct AngleLimits
 };
 struct ServoPosition
 {
-  static unsigned int getPosition(std::vector<uint8_t> raw_data)
+  static unsigned int getData(std::vector<uint8_t> raw_data)
   {
     return (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
   };
 
-  static std::vector<uint8_t> getRawPosition(unsigned int position)
+  static std::vector<uint8_t> getRawData(unsigned int position)
   {
     return std::vector<uint8_t>({ (uint8_t)(position % 256), (uint8_t)(position >> 8) });
   };
@@ -68,7 +65,7 @@ struct ServoPosition
 
 struct ServoSpeed
 {
-  static unsigned int getSpeed(std::vector<uint8_t> raw_data)
+  static unsigned int getData(std::vector<uint8_t> raw_data)
   {
     unsigned int speed = (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
     if (speed > 1023)
@@ -77,7 +74,7 @@ struct ServoSpeed
     }
     return speed;
   };
-  static std::vector<uint8_t> getRawSpeed(unsigned int speed)
+  static std::vector<uint8_t> getRawData(unsigned int speed)
   {
     return std::vector<uint8_t>({ (uint8_t)(speed % 256), (uint8_t)(speed >> 8) });
   };
@@ -98,7 +95,7 @@ struct ServoFeedback
   unsigned int id;
   unsigned int goal;
   unsigned int position;
-  unsigned int error;
+  int error;
   unsigned int speed;
 
   double voltage;
@@ -118,7 +115,7 @@ struct ServoFeedback
     processed_data.id = (unsigned int)servo_id;
     processed_data.goal = (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
     processed_data.position = (unsigned int)(raw_data.at(11) + (raw_data.at(12) << 8));
-    processed_data.error = processed_data.position - processed_data.goal;
+    processed_data.error = (processed_data.position - processed_data.goal);
     processed_data.speed = (unsigned int)(raw_data.at(13) + (raw_data.at(14) << 8));
     if (processed_data.speed > 1023)
     {

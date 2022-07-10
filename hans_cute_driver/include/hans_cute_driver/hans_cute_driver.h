@@ -10,6 +10,8 @@ namespace HansCuteRobot
 class ServoDriver : public ServoSerialComms
 {
 public:
+  static const SamplePacket DXL_PACKET;
+
   ServoDriver(const std::string port, const long baudrate);
   ~ServoDriver();
 
@@ -56,11 +58,12 @@ public:
   bool setMultiComplianceSlope();
 
   // Position value ranges from 0 -> 4095 (0xFFF), unit is 0.088 degree
-  bool setMultiPosition();
-  bool setMultiSpeed();
+  bool setMultiPosition(const std::vector<unsigned int>& servo_ids, const std::vector<unsigned int>& positions);
+  bool setMultiSpeed(const std::vector<unsigned int>& servo_ids, const std::vector<unsigned int>& speeds);
 
   bool setMultiTorqueLimit();
-  bool setMultiPositionAndSpeed();
+  bool setMultiPositionAndSpeed(const std::vector<unsigned int>& servo_ids, const std::vector<unsigned int>& positions,
+                                const std::vector<unsigned int>& speeds);
 
   //===============================//
   // Servo status access functions //
@@ -70,12 +73,12 @@ public:
   bool getFirmwareVersion();
   bool getReturnDelayTime();
 
-  bool getTorqueEnabled(const int& servo_id, bool &enabled);
+  bool getTorqueEnabled(const int& servo_id, bool& enabled);
   bool getAngleLimits(const int& servo_id, HansCuteRobot::AngleLimits& angle_limit);
 
   bool getVoltageLimits();
-  bool getPosition(const int& servo_id);
-  bool getSpeed(const int& servo_id);
+  bool getPosition(const int& servo_id, unsigned int& position);
+  bool getSpeed(const int& servo_id, unsigned int& speed);
 
   bool getVoltage();
   bool getCurrent();

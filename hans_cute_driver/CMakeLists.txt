@@ -8,7 +8,6 @@ add_compile_options(-std=c++17)
 # # if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 # # is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  roscpp
 )
 
 # # System dependencies are found with CMake's conventions
@@ -104,19 +103,20 @@ catkin_package(
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS roscpp
+
   # DEPENDS system_lib
 )
 
 # ##########
 # # Build ##
 # ##########
-
 set(${PROJECT_NAME}_SOURCES
   src/custom_serial_port.cpp
   src/serial_command.cpp
   src/hans_cute_serial.cpp
   src/hans_cute_driver.cpp
-  src/main.cpp)
+  src/main.cpp
+)
 
 # # Specify additional locations of header files
 # # Your package locations should be listed before other locations
@@ -205,9 +205,12 @@ target_link_libraries(${PROJECT_NAME}_node
 # ############
 
 # # Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_hans_cute_driver.cpp)
+# set(${PROJECT_NAME}_TESTS
+# )
+# catkin_add_gtest(${PROJECT_NAME}-test ${${PROJECT_NAME}_TESTS})
+
 # if(TARGET ${PROJECT_NAME}-test)
-# target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+#   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 # # Add folders to be run by python nosetests

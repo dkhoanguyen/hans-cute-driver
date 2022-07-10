@@ -22,7 +22,6 @@ struct SamplePacket
   unsigned int id;               // Position of the id byte
   unsigned int length;           // Position of length byte
   unsigned int data;             // Start position of data byte
-  unsigned int check_sum;
 };
 
 class SerialCommand : public SerialCommandInterface
