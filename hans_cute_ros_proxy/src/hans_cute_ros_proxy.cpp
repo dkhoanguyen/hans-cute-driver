@@ -52,7 +52,7 @@ bool HansCuteRosProxy::findMotors()
       if (ping_try == num_retries)
       {
         std::cout << "Failed to ping motor: " << servo_id << std::endl;
-        break
+        break;
       }
 
       // We should wrap this ping function in driver maybe
@@ -99,7 +99,7 @@ bool HansCuteRosProxy::findMotors()
     return false;
   }
 
-  return true
+  return true;
 }
 
 bool HansCuteRosProxy::fillMotorParameters(const unsigned int& servo_id, const unsigned int& model_number)

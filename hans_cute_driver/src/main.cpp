@@ -28,31 +28,25 @@ int main(int argc, char* argv[])
     // {
     //   std::cout << "Received data:" << std::hex << (int)data << std::endl;
     // }
-    // HansCuteRobot::ServoFeedback feedback;
-    // hans_robot.getFeedback(i,feedback);
-    // std::cout << feedback << std::endl;
-    // std::cout << "=======" << std::endl;
-    hans_robot.setPosition(i,2000);
+    HansCuteRobot::ServoFeedback feedback;
+    hans_robot.getFeedback(i,feedback);
+    std::cout << feedback << std::endl;
+    std::cout << "=======" << std::endl;
+    hans_robot.setAngleLimits(i,853,3243);
+    hans_robot.setTorqueEnable(i,true);
+    bool test = false;
+    hans_robot.getTorqueEnabled(i,test);
+    // hans_robot.getPosition(i);
     // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    hans_robot.setSpeed(i,300);
-    hans_robot.getSpeed(i);
+    hans_robot.setPosition(i,2048);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    // hans_robot.setPosition(i,2400);
+    // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+    // hans_robot.getSpeed(i);
     // unsigned int model_number = 0;
     // hans_robot.getModelNumber(i,model_number);
     // std::cout <<(int) model_number << std::endl;
   }
-
-  // std::vector<uint8_t> data = { 0xFF, 0xFF, 0x01, 0x02, 0x01, 0xFB };
-  // hans_robot.writeCommand(data);
-
-  // std::vector<uint8_t> outData;
-  // hans_robot.readResponse(outData);
-
-  // std::cout << "Received data size:" << outData.size() << std::endl;
-
-  // for (uint8_t data : outData)
-  // {
-  //   std::cout << "Received data:" << std::hex << (int)data  << std::endl;
-  // }
 
   hans_robot.close();
   return 0;

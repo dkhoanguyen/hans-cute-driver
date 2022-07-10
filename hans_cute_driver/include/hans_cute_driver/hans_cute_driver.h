@@ -28,7 +28,7 @@ public:
   //===============================================================//
   // These functions can send multiple commands to a single servo  //
   //===============================================================//
-  bool setTorqueEnable();
+  bool setTorqueEnable(const uint8_t& servo_id, const bool& enabled);
   bool setComplianceMargin();
   bool setComplianceSlope();
 
@@ -70,6 +70,7 @@ public:
   bool getFirmwareVersion();
   bool getReturnDelayTime();
 
+  bool getTorqueEnabled(const int& servo_id, bool &enabled);
   bool getAngleLimits(const int& servo_id, HansCuteRobot::AngleLimits& angle_limit);
 
   bool getVoltageLimits();

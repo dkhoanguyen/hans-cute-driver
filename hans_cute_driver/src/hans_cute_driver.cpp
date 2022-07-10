@@ -30,13 +30,8 @@ bool HansCuteRobot::ServoDriver::setAngleLimits(const uint8_t& servo_id, const u
   std::vector<uint8_t> raw_limit = HansCuteRobot::AngleLimits::getRawData(min_limit, max_limit);
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::DXL_GOAL_POSITION_L, raw_limit, returned_data, timestamp);
-  for (uint8_t data : returned_data)
-  {
-    std::cout << "Received data:" << std::hex << (int)data << std::endl;
-  }
+  write(servo_id, (uint8_t)ControlTableConstant::DXL_CW_ANGLE_LIMIT_L, raw_limit, returned_data, timestamp);
   return true;
-
 }
 
 bool HansCuteRobot::ServoDriver::setVoltageLimits()
@@ -46,8 +41,17 @@ bool HansCuteRobot::ServoDriver::setVoltageLimits()
 //===============================================================//
 // These functions can send multiple commands to a single servo  //
 //===============================================================//
-bool HansCuteRobot::ServoDriver::setTorqueEnable()
+bool HansCuteRobot::ServoDriver::setTorqueEnable(const uint8_t& servo_id, const bool& enabled)
 {
+  std::vector<uint8_t> data({(uint8_t)enabled});
+  std::vector<uint8_t> returned_data;
+  unsigned long timestamp;
+  write(servo_id, (uint8_t)ControlTableConstant::DXL_TORQUE_ENABLE, data, returned_data, timestamp);
+  for (uint8_t data : returned_data)
+  {
+    std::cout << "Received data:" << std::hex << (int)data << std::endl;
+  }
+  return true;
 }
 bool HansCuteRobot::ServoDriver::setComplianceMargin()
 {
@@ -86,10 +90,6 @@ bool HansCuteRobot::ServoDriver::setSpeed(const uint8_t& servo_id, const unsigne
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
   write(servo_id, (uint8_t)ControlTableConstant::DXL_GOAL_SPEED_L, raw_speed, returned_data, timestamp);
-  for (uint8_t data : returned_data)
-  {
-    std::cout << "Received data:" << std::hex << (int)data << std::endl;
-  }
   return true;
 }
 
@@ -165,11 +165,22 @@ bool HansCuteRobot::ServoDriver::getAngleLimits(const int& servo_id, HansCuteRob
   {
     return false;
   }
+  angle_limit = HansCuteRobot::AngleLimits::getData(response);
+  return true;
+}
+
+bool HansCuteRobot::ServoDriver::getTorqueEnabled(const int& servo_id, bool &enabled)
+{
+  std::vector<uint8_t> response;
+  unsigned long timestamp = 0;
+  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::DXL_TORQUE_ENABLE, 1, response, timestamp))
+  {
+    return false;
+  }
   for (uint8_t data : response)
   {
     std::cout << "Received data:" << std::hex << (int)data << std::endl;
   }
-  angle_limit = HansCuteRobot::AngleLimits::getData(response);
   return true;
 }
 
