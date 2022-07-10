@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
     hans_robot.getTorqueEnabled(i,test);
     // hans_robot.getPosition(i);
     // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-    hans_robot.setPosition(i,2048);
+    hans_robot.setPosition(i,2077);
     // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     // hans_robot.setPosition(i,2400);
     // std::this_thread::sleep_for(std::chrono::milliseconds(1000));
