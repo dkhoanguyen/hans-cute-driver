@@ -47,6 +47,19 @@ bool HansCuteRobot::ServoDriver::setVoltageLimits()
   return true;
 }
 
+bool HansCuteRobot::ServoDriver::setMaxTorque(const uint8_t& servo_id, const unsigned int& max_torque)
+{
+  std::vector<uint8_t> raw_limit = HansCuteRobot::TorqueLimit::getRawData(max_torque);
+  std::vector<uint8_t> returned_data;
+  unsigned long timestamp;
+  write(servo_id, (uint8_t)ControlTableConstant::MAX_TORQUE_L, raw_limit, returned_data, timestamp);
+  for (uint8_t data : returned_data)
+  {
+    std::cout << (int)data << std::endl; 
+  }
+  return true;
+}
+
 //===============================================================//
 // These functions can send multiple commands to a single servo  //
 //===============================================================//
@@ -100,8 +113,12 @@ bool HansCuteRobot::ServoDriver::setSpeed(const uint8_t& servo_id, const unsigne
   return true;
 }
 
-bool HansCuteRobot::ServoDriver::setTorqueLimit()
+bool HansCuteRobot::ServoDriver::setTorqueLimit(const uint8_t& servo_id, const unsigned int& torque_limit)
 {
+  std::vector<uint8_t> raw_torque = HansCuteRobot::TorqueLimit::getRawData(torque_limit);
+  std::vector<uint8_t> returned_data;
+  unsigned long timestamp;
+  write(servo_id, (uint8_t)ControlTableConstant::TORQUE_LIMIT_L, raw_torque, returned_data, timestamp);
   return true;
 }
 bool HansCuteRobot::ServoDriver::setGoalTorque()
@@ -163,7 +180,7 @@ bool HansCuteRobot::ServoDriver::setMultiSpeed(const std::vector<unsigned int>& 
     data.insert(data.end(), speed.begin(), speed.end());
     data_lists.push_back(data);
   }
-  syncWrite((uint8_t)ControlTableConstant::GOAL_POSITION_L, data_lists);
+  syncWrite((uint8_t)ControlTableConstant::GOAL_SPEED_L, data_lists);
   return true;
 }
 
@@ -237,6 +254,18 @@ bool HansCuteRobot::ServoDriver::getTorqueEnabled(const int& servo_id, bool& ena
   return true;
 }
 
+bool HansCuteRobot::ServoDriver::getMaxTorque(const int& servo_id, unsigned int& torque)
+{
+  std::vector<uint8_t> response;
+  unsigned long timestamp = 0;
+  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::MAX_TORQUE_L, 2, response, timestamp))
+  {
+    return false;
+  }
+  torque = HansCuteRobot::TorqueLimit::getData(response);
+  return true;
+}
+
 bool HansCuteRobot::ServoDriver::getVoltageLimits()
 {
   return true;
@@ -256,7 +285,7 @@ bool HansCuteRobot::ServoDriver::getSpeed(const int& servo_id, unsigned int& spe
 {
   std::vector<uint8_t> response;
   unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::PRESENT_SPEED_L, 2, response, timestamp))
+  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::GOAL_SPEED_L, 2, response, timestamp))
   {
     return false;
   }
@@ -270,6 +299,18 @@ bool HansCuteRobot::ServoDriver::getVoltage()
 }
 bool HansCuteRobot::ServoDriver::getCurrent()
 {
+  return true;
+}
+
+bool HansCuteRobot::ServoDriver::getLock(const int& servo_id, bool& lock)
+{
+  std::vector<uint8_t> response;
+  unsigned long timestamp = 0;
+  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::LOCK, 1, response, timestamp))
+  {
+    return false;
+  }
+  lock = (bool)response.at(5);
   return true;
 }
 

@@ -82,10 +82,15 @@ struct ServoSpeed
 
 struct TorqueLimit
 {
-  static std::vector<uint8_t> getRawData(double value)
+  static unsigned int getData(std::vector<uint8_t> raw_data)
   {
-    unsigned int torque = value * 1023;
-    return std::vector<uint8_t>({ (uint8_t)(torque % 256), (uint8_t)(torque >> 8) });
+    return (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
+  }
+  static std::vector<uint8_t> getRawData(unsigned int torque)
+  {
+    uint8_t low = (uint8_t)(torque % 256);
+    uint8_t high = (uint8_t)(torque >> 8);
+    return std::vector<uint8_t>({ low, high });
   }
 };
 

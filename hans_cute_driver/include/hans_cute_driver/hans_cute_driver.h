@@ -26,6 +26,7 @@ public:
   bool setReturnDelayTime();
   bool setAngleLimits(const uint8_t& servo_id, const unsigned int& min_limit, const unsigned int& max_limit);
   bool setVoltageLimits();
+  bool setMaxTorque(const uint8_t& servo_id, const unsigned int& max_torque);
 
   //===============================================================//
   // These functions can send multiple commands to a single servo  //
@@ -42,7 +43,7 @@ public:
   bool setPosition(const uint8_t& servo_id, const unsigned int& position);
   bool setSpeed(const uint8_t& servo_id, const unsigned int& speed);
 
-  bool setTorqueLimit();
+  bool setTorqueLimit(const uint8_t& servo_id, const unsigned int& torque_limit);
   bool setGoalTorque();
 
   bool setPositionAndSpeed();
@@ -73,6 +74,7 @@ public:
   bool getFirmwareVersion();
   bool getReturnDelayTime();
 
+  bool getMaxTorque(const int& servo_id, unsigned int& torque);
   bool getTorqueEnabled(const int& servo_id, bool& enabled);
   bool getAngleLimits(const int& servo_id, HansCuteRobot::AngleLimits& angle_limit);
 
@@ -82,6 +84,7 @@ public:
 
   bool getVoltage();
   bool getCurrent();
+  bool getLock(const int& servo_id, bool& lock);
 
   bool getFeedback(const int& servo_id, ServoFeedback& feedback);
 };
