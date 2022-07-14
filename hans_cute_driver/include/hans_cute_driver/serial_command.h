@@ -10,6 +10,7 @@
 #include <cmath>
 #include <thread>
 #include <atomic>
+#include <csignal>
 
 // New native serial library
 #include "custom_serial_port.h"
@@ -46,16 +47,16 @@ public:
   virtual uint8_t calcCheckSum(std::vector<uint8_t>& data) const = 0;
 
 protected:
+  
   std::shared_ptr<SerialPort> _serial_port;
   std::string _port;
   unsigned int _baudrate;
   unsigned int _timeout;
-
   unsigned int _num_tries;
-
   SamplePacket _sample_packet;
-
   std::mutex _comms_mtx;
+
+  virtual void stop(int sig_num) = 0;
 };
 
 #endif

@@ -4,6 +4,9 @@ SerialCommand::SerialCommand(const std::string port, const long baudrate)
   : _port(port), _baudrate(baudrate), _timeout(50), _num_tries(5)
 {
   _serial_port = std::make_shared<SerialPort>(port, baudrate, _timeout);
+  
+  //TODO:Register sigterm handler
+  // signal(SIGTERM,SerialCommand::sigTermHandler);
 }
 
 SerialCommand::SerialCommand() : SerialCommand("/dev/ttyUSB0", 115200)

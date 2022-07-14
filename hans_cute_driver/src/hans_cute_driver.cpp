@@ -28,7 +28,7 @@ bool HansCuteRobot::ServoDriver::setBaudrate(const uint8_t& servo_id, const long
   return true;
 }
 
-bool HansCuteRobot::ServoDriver::setReturnDelayTime()
+bool HansCuteRobot::ServoDriver::setReturnDelayTime(const uint8_t& servo_id, const unsigned int& delay_time)
 {
   return true;
 }
@@ -42,7 +42,7 @@ bool HansCuteRobot::ServoDriver::setAngleLimits(const uint8_t& servo_id, const u
   return true;
 }
 
-bool HansCuteRobot::ServoDriver::setVoltageLimits()
+bool HansCuteRobot::ServoDriver::setVoltageLimits(const uint8_t &servo_id, const VoltageLimits& voltage_limits)
 {
   return true;
 }
@@ -92,8 +92,12 @@ bool HansCuteRobot::ServoDriver::setPGain()
   return true;
 }
 
-bool HansCuteRobot::ServoDriver::setAcceleration()
+bool HansCuteRobot::ServoDriver::setAcceleration(const uint8_t& servo_id, const unsigned int& acceleration)
 {
+  std::vector<uint8_t> raw_data = HansCuteRobot::ServoAcceleration::getRawData(acceleration);
+  std::vector<uint8_t> returned_data;
+  unsigned long timestamp;
+  write(servo_id, (uint8_t)ControlTableConstant::GOAL_ACCELERATION, raw_data, returned_data, timestamp);
   return true;
 }
 bool HansCuteRobot::ServoDriver::setPosition(const uint8_t& servo_id, const unsigned int& position)
@@ -184,7 +188,8 @@ bool HansCuteRobot::ServoDriver::setMultiSpeed(const std::vector<unsigned int>& 
   return true;
 }
 
-bool HansCuteRobot::ServoDriver::setMultiTorqueLimit()
+bool HansCuteRobot::ServoDriver::setMultiTorqueLimit(const std::vector<unsigned int>& servo_ids,
+                                                     const std::vector<unsigned int>& torque_limits)
 {
   return true;
 }

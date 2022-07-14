@@ -8,7 +8,7 @@ namespace HansCuteRobot
 {
 struct ModelNumber
 {
-  static unsigned int getData(std::vector<uint8_t> raw_data)
+  static unsigned int getData(const std::vector<uint8_t>& raw_data)
   {
     return (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
   }
@@ -18,7 +18,7 @@ struct VoltageLimits
   double min;
   double max;
 
-  static VoltageLimits getData(std::vector<uint8_t> raw_data)
+  static VoltageLimits getData(const std::vector<uint8_t>& raw_data)
   {
     VoltageLimits voltage_limits;
     voltage_limits.min = (double)raw_data.at(5) / 10;
@@ -31,7 +31,7 @@ struct AngleLimits
   unsigned int cw;
   unsigned int ccw;
 
-  static AngleLimits getData(std::vector<uint8_t> raw_data)
+  static AngleLimits getData(const std::vector<uint8_t>& raw_data)
   {
     AngleLimits angle_limits;
     angle_limits.cw = (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
@@ -39,7 +39,7 @@ struct AngleLimits
     return angle_limits;
   };
 
-  static std::vector<uint8_t> getRawData(unsigned int min_angle, unsigned int max_angle)
+  static std::vector<uint8_t> getRawData(const unsigned int& min_angle, const unsigned int& max_angle)
   {
     uint8_t min_angle_low = (min_angle % 256);
     uint8_t min_angle_high = (min_angle >> 8);
@@ -52,12 +52,13 @@ struct AngleLimits
 };
 struct ServoPosition
 {
-  static unsigned int getData(std::vector<uint8_t> raw_data)
+  unsigned int position;
+  static unsigned int getData(const std::vector<uint8_t>& raw_data)
   {
     return (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
   };
 
-  static std::vector<uint8_t> getRawData(unsigned int position)
+  static std::vector<uint8_t> getRawData(const unsigned int& position)
   {
     return std::vector<uint8_t>({ (uint8_t)(position % 256), (uint8_t)(position >> 8) });
   };
@@ -65,7 +66,8 @@ struct ServoPosition
 
 struct ServoSpeed
 {
-  static unsigned int getData(std::vector<uint8_t> raw_data)
+  unsigned int speed;
+  static unsigned int getData(const std::vector<uint8_t>& raw_data)
   {
     unsigned int speed = (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
     if (speed > 1023)
@@ -74,23 +76,36 @@ struct ServoSpeed
     }
     return speed;
   };
-  static std::vector<uint8_t> getRawData(unsigned int speed)
+  static std::vector<uint8_t> getRawData(const unsigned int& speed)
   {
     return std::vector<uint8_t>({ (uint8_t)(speed % 256), (uint8_t)(speed >> 8) });
   };
 };
 
-struct TorqueLimit
+struct ServoAcceleration
 {
-  static unsigned int getData(std::vector<uint8_t> raw_data)
+  unsigned int acceleration;
+  static unsigned int getData(const std::vector<uint8_t>& raw_data)
   {
     return (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
   }
-  static std::vector<uint8_t> getRawData(unsigned int torque)
+
+  static std::vector<uint8_t> getRawData(const unsigned int& acceleration)
   {
-    uint8_t low = (uint8_t)(torque % 256);
-    uint8_t high = (uint8_t)(torque >> 8);
-    return std::vector<uint8_t>({ low, high });
+    return std::vector<uint8_t>({ (uint8_t)(acceleration % 256), (uint8_t)(acceleration >> 8) });
+  }
+};
+
+struct TorqueLimit
+{
+  unsigned int limit;
+  static unsigned int getData(const std::vector<uint8_t>& raw_data)
+  {
+    return (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
+  }
+  static std::vector<uint8_t> getRawData(const unsigned int& torque)
+  {
+    return std::vector<uint8_t>({ (uint8_t)(torque % 256), (uint8_t)(torque >> 8) });
   }
 };
 
@@ -107,7 +122,7 @@ struct ServoFeedback
   unsigned int temperature;
   bool moving;
 
-  static ServoFeedback getData(uint8_t servo_id, std::vector<uint8_t> raw_data, unsigned long timestamp)
+  static ServoFeedback getData(const uint8_t& servo_id, const std::vector<uint8_t>& raw_data, const unsigned long& timestamp)
   {
     ServoFeedback processed_data;
     std::cout << raw_data.size() << std::endl;
