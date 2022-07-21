@@ -114,6 +114,9 @@ enum class StaticParameter
 
   MIN_COMPLIANCE_SLOPE = 1,
   MAX_COMPLIANCE_SLOPE = 254,
+
+  MIN_TORQUE = 0,
+  MAX_TORQUE = 1
 };
 
 enum class UtilsParameter

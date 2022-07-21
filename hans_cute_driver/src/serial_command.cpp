@@ -1,12 +1,12 @@
 #include "hans_cute_driver/serial_command.h"
 
 SerialCommand::SerialCommand(const std::string port, const long baudrate)
-  : _port(port), _baudrate(baudrate), _timeout(50), _num_tries(5)
+    : _port(port), _baudrate(baudrate), _timeout(50), _num_tries(5)
 {
   _serial_port = std::make_shared<SerialPort>(port, baudrate, _timeout);
-  
-  //TODO:Register sigterm handler
-  // signal(SIGTERM,SerialCommand::sigTermHandler);
+
+  // TODO:Register sigterm handler
+  //  signal(SIGTERM,SerialCommand::sigTermHandler);
 }
 
 SerialCommand::SerialCommand() : SerialCommand("/dev/ttyUSB0", 115200)
@@ -25,7 +25,7 @@ void SerialCommand::open() const
   {
     _serial_port->openPort();
   }
-  catch (const std::exception& e)
+  catch (const std::exception &e)
   {
     // We should catch errors here
   }
@@ -36,7 +36,7 @@ void SerialCommand::close() const
   _serial_port->closePort();
 }
 
-bool SerialCommand::readResponse(std::vector<uint8_t>& response)
+bool SerialCommand::readResponse(std::vector<uint8_t> &response)
 {
   std::unique_lock<std::mutex> lck(_comms_mtx);
   std::vector<uint8_t> returned_data;
@@ -81,7 +81,7 @@ bool SerialCommand::readResponse(std::vector<uint8_t>& response)
   return true;
 }
 
-bool SerialCommand::writeCommand(const std::vector<uint8_t>& command)
+bool SerialCommand::writeCommand(const std::vector<uint8_t> &command)
 {
   std::unique_lock<std::mutex> lck(_comms_mtx);
   try
@@ -90,7 +90,7 @@ bool SerialCommand::writeCommand(const std::vector<uint8_t>& command)
     _serial_port->wait();
     return true;
   }
-  catch (const std::exception& se)
+  catch (const std::exception &se)
   {
     // Handle errors
     return false;

@@ -35,7 +35,7 @@ uint8_t HansCuteRobot::ServoSerialComms::calcCheckSum(std::vector<uint8_t> &data
 
 //
 bool HansCuteRobot::ServoSerialComms::read(const uint8_t &id, const uint8_t &address, const uint8_t &size,
-                          std::vector<uint8_t> &returned_data, unsigned long &timestamp)
+                                           std::vector<uint8_t> &returned_data, unsigned long &timestamp)
 {
   // Number of bytes following standard header (0xFF, 0xFF, id, length)
   uint8_t length = 4;
@@ -57,7 +57,7 @@ bool HansCuteRobot::ServoSerialComms::read(const uint8_t &id, const uint8_t &add
 }
 
 bool HansCuteRobot::ServoSerialComms::write(const uint8_t &id, const uint8_t &address, const std::vector<uint8_t> &data,
-                           std::vector<uint8_t> &returned_data, unsigned long &timestamp)
+                                            std::vector<uint8_t> &returned_data, unsigned long &timestamp)
 {
   // Number of bytes following standard header (0xFF, 0xFF, id, length)
   uint8_t length = 3 + (uint8_t)data.size();
@@ -104,7 +104,7 @@ bool HansCuteRobot::ServoSerialComms::syncWrite(const uint8_t &address, const st
   uint8_t servo_data_length = data.at(0).size() - 1;
   std::vector<uint8_t> packet = {0xFF, 0xFF, (uint8_t)BroadcastConstant::BROADCAST, length, (uint8_t)InstructionSet::SYNC_WRITE, address, servo_data_length};
   packet.insert(std::end(packet), std::begin(flatten_data), std::end(flatten_data));
-  
+
   sum += (uint8_t)BroadcastConstant::BROADCAST + length + (uint8_t)InstructionSet::SYNC_WRITE + address + servo_data_length;
   uint8_t checksum = 255 - (sum % 256);
   packet.push_back(checksum);

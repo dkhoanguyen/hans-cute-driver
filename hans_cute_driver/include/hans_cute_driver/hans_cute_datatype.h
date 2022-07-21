@@ -28,14 +28,15 @@ struct VoltageLimits
 };
 struct AngleLimits
 {
-  unsigned int cw;
-  unsigned int ccw;
+  unsigned int min;
+  unsigned int max;
 
   static AngleLimits getData(const std::vector<uint8_t>& raw_data)
   {
     AngleLimits angle_limits;
-    angle_limits.cw = (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
-    angle_limits.ccw = (unsigned int)(raw_data.at(7) + (raw_data.at(8) << 8));
+    // TODO: we should ensure that min is less than max
+    angle_limits.min = (unsigned int)(raw_data.at(5) + (raw_data.at(6) << 8));
+    angle_limits.max = (unsigned int)(raw_data.at(7) + (raw_data.at(8) << 8));
     return angle_limits;
   };
 

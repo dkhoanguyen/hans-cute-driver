@@ -55,8 +55,6 @@ protected:
   unsigned int _num_tries;
   SamplePacket _sample_packet;
   std::mutex _comms_mtx;
-
-  virtual void stop(int sig_num) = 0;
 };
 
 #endif
