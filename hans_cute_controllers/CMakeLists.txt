@@ -9,7 +9,7 @@ project(hans_cute_controllers)
 # # is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   hans_cute_driver
-  hans_cute_ros_proxy
+  hans_cute_status_manager
   roscpp
 )
 
@@ -105,7 +105,7 @@ catkin_package(
 
   INCLUDE_DIRS include
   # LIBRARIES hans_cute_controllers
-  CATKIN_DEPENDS hans_cute_driver hans_cute_ros_proxy roscpp
+  CATKIN_DEPENDS hans_cute_driver hans_cute_status_manager roscpp
   # DEPENDS system_lib
 )
 

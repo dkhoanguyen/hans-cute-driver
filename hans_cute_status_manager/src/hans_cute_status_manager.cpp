@@ -1,38 +1,26 @@
-#include "hans_cute_ros_proxy/hans_cute_ros_proxy.h"
+#include "hans_cute_status_manager/hans_cute_status_manager.h"
 
-HansCuteRosProxy::HansCuteRosProxy(const std::string& port_name, const std::string& port_namespace,
-                                   const long& baud_rate, const unsigned int& min_motor_id,
-                                   const unsigned int& max_motor_id)
-  : port_name_(port_name)
-  , port_namespace_(port_namespace)
-  , baud_rate_(baud_rate)
-  , min_motor_id_(min_motor_id)
-  , max_motor_id_(max_motor_id)
-  , running_(false)
+HansCuteStatusManager::HansCuteStatusManager(const std::string &port_name, const std::string &port_namespace,
+                                             const long &baud_rate, const unsigned int &min_motor_id,
+                                             const unsigned int &max_motor_id)
+    : port_name_(port_name), port_namespace_(port_namespace), baud_rate_(baud_rate), min_motor_id_(min_motor_id), max_motor_id_(max_motor_id), running_(false)
 {
 }
 
-HansCuteRosProxy::HansCuteRosProxy() : HansCuteRosProxy("/dev/ttyUSB", "ttyUSB0", 250000, 0, 7)
+HansCuteStatusManager::HansCuteStatusManager() : HansCuteStatusManager("/dev/ttyUSB", "ttyUSB0", 250000, 0, 6)
 {
 }
 
-HansCuteRosProxy::~HansCuteRosProxy()
+HansCuteStatusManager::~HansCuteStatusManager()
 {
 }
 
-void HansCuteRosProxy::setServoDriver(std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr)
+void HansCuteStatusManager::setServoDriver(std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr)
 {
   servo_driver_ptr_ = servo_driver_ptr;
 }
 
-bool HansCuteRosProxy::connect()
-{
-  // Find motors
-
-  // Start 2 update threads
-}
-
-bool HansCuteRosProxy::disconnect()
+bool HansCuteStatusManager::connect()
 {
   findMotors();
 
@@ -41,7 +29,11 @@ bool HansCuteRosProxy::disconnect()
   }
 }
 
-bool HansCuteRosProxy::findMotors()
+bool HansCuteStatusManager::disconnect()
+{
+}
+
+bool HansCuteStatusManager::findMotors()
 {
   std::vector<unsigned int> motor_ids_list;
   unsigned int num_retries = 5;
@@ -64,6 +56,7 @@ bool HansCuteRosProxy::findMotors()
       }
 
       // IF we can ping this servo then, we should be able to retrieve the servo params
+      std::cout << "Found servo " << servo_id << std::endl;
       bool servo_params_filled = false;
       for (int query_param_try = 1; query_param_try <= num_retries; query_param_try++)
       {
@@ -74,7 +67,7 @@ bool HansCuteRosProxy::findMotors()
         }
 
         unsigned int model_number = 0;
-        if (servo_driver_ptr_->getModelNumber(servo_id, model_number))
+        if (!servo_driver_ptr_->getModelNumber(servo_id, model_number))
         {
           continue;
         }
@@ -102,6 +95,6 @@ bool HansCuteRosProxy::findMotors()
   return true;
 }
 
-bool HansCuteRosProxy::fillMotorParameters(const unsigned int& servo_id, const unsigned int& model_number)
+bool HansCuteStatusManager::fillMotorParameters(const unsigned int &servo_id, const unsigned int &model_number)
 {
 }

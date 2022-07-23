@@ -3,7 +3,7 @@
 namespace HansCuteController
 {
   Controller::Controller(const std::shared_ptr<HansCuteRobot::ServoDriver> &servo_driver_ptr,
-                         std::string &controller_namespace, const std::string &port_namespace)
+                         const std::string &controller_namespace, const std::string &port_namespace)
       : servo_driver_ptr_(servo_driver_ptr),
         controller_namespace_(controller_namespace),
         port_namespace_(port_namespace),
@@ -39,7 +39,7 @@ namespace HansCuteController
   {
   }
 
-  void Controller::setJointIds(const std::vector<unsigned int>& joint_ids)
+  void Controller::setJointIds(const std::vector<unsigned int> &joint_ids)
   {
     joint_ids_ = joint_ids;
   }
@@ -47,7 +47,7 @@ namespace HansCuteController
   void Controller::setServoModels(const std::vector<HansCuteRobot::ServoModel> &models)
   {
     models_ = models;
-  } 
+  }
 
   void Controller::setJointNames(const std::vector<std::string> &joint_names)
   {

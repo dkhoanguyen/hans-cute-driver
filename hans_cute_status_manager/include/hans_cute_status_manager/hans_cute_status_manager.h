@@ -1,17 +1,17 @@
-#ifndef _HANS_CUTE_ROS_PROXY_H_
-#define _HANS_CUTE_ROS_PROXY_H_
+#ifndef _HANS_CUTE_STATUS_MANAGER_H_
+#define _HANS_CUTE_STATUS_MANAGER_H_
 
 #include <thread>
 
 #include "hans_cute_driver/hans_cute_driver.h"
 
-class HansCuteRosProxy
+class HansCuteStatusManager
 {
 public:
-  HansCuteRosProxy(const std::string& port_name, const std::string& port_namespace, const long& baud_rate,
-                   const unsigned int& min_motor_id=0, const unsigned int& max_motor_id=7);
-  HansCuteRosProxy();
-  ~HansCuteRosProxy();
+  HansCuteStatusManager(const std::string &port_name, const std::string &port_namespace, const long &baud_rate,
+                        const unsigned int &min_motor_id = 0, const unsigned int &max_motor_id = 7);
+  HansCuteStatusManager();
+  ~HansCuteStatusManager();
 
   void setServoDriver(std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr);
 
@@ -20,7 +20,7 @@ public:
 
 private:
   bool findMotors();
-  bool fillMotorParameters(const unsigned int& servo_id, const unsigned int& model_number);
+  bool fillMotorParameters(const unsigned int &servo_id, const unsigned int &model_number);
 
   void updateMotorState();
   void publishDiagnosticInformation();

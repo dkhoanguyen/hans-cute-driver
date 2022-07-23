@@ -9,7 +9,7 @@ namespace HansCuteController
   {
   public:
     JointPositionController(const std::shared_ptr<HansCuteRobot::ServoDriver> &servo_driver_ptr,
-                            std::string &controller_namespace, const std::string &port_namespace);
+                            const std::string &controller_namespace, const std::string &port_namespace);
     ~JointPositionController();
 
     void initialise();

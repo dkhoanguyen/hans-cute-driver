@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>hans_cute_ros_proxy</name>
+  <name>hans_cute_status_manager</name>
   <version>0.0.0</version>
-  <description>The hans_cute_ros_proxy package</description>
+  <description>The hans_cute_status_manager package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/hans_cute_ros_proxy</url> -->
+  <!-- <url type="website">http://wiki.ros.org/hans_cute_status_manager</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
