@@ -14,32 +14,7 @@ namespace HansCuteController
 
   void JointPositionController::initialise()
   {
-    // Configure angle sweep
-    joint_params_.clear();
-    for (unsigned int idx = 0; idx < joint_ids_.size(); idx++)
-    {
-      HansCuteRobot::AngleLimits angle_lims;
-      servo_driver_ptr_->getAngleLimits(joint_ids_.at(idx), angle_lims);
-      HansCuteRobot::ServoModel model = models_.at(idx);
-      double range_radians = model.range_degrees * (M_PI / 180);
-      double rad_per_enc_tick = range_radians / model.encoder_resolution;
-      double enc_tick_per_rad = model.encoder_resolution / range_radians;
-
-      JointParams joint_params;
-      // Raw values
-      joint_params.raw_min = angle_lims.min;
-      joint_params.raw_max = angle_lims.max;
-      joint_params.raw_origin = angle_lims.min + (angle_lims.max - angle_lims.min) / 2;
-
-      // Radians
-      joint_params.min = (joint_params.raw_min - joint_params.raw_origin) * rad_per_enc_tick;
-      joint_params.max = (joint_params.raw_min - joint_params.raw_origin) * rad_per_enc_tick;
-      joint_params_.push_back(joint_params);
-
-      // Utils params
-      joint_params.rad_per_enc_tick = rad_per_enc_tick;
-      joint_params.enc_tick_per_rad = enc_tick_per_rad;
-    }
+    
   }
 
   void JointPositionController::start()
@@ -66,7 +41,7 @@ namespace HansCuteController
     servo_driver_ptr_->setMultiPosition(joint_ids_, processed_data);
   }
 
-  void JointPositionController::posRadToRaw(const double &rad, unsigned int &raw, const JointParams &params)
+  void JointPositionController::posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params)
   {
     raw = (unsigned int)round(params.raw_origin + (rad * params.enc_tick_per_rad));
   }

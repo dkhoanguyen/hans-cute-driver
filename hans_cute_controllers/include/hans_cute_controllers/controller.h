@@ -9,6 +9,8 @@
 #include "hans_cute_driver/hans_cute_const.h"
 #include "hans_cute_driver/hans_cute_datatype.h"
 
+#include "hans_cute_status_manager/status_manager_datatype.h"
+
 #include "controller_interface.h"
 
 namespace HansCuteController

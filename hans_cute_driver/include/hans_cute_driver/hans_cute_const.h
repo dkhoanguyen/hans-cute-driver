@@ -149,7 +149,7 @@ static const ServoModel MX64{ "MX-64", 4096, 360.0, 6.0 / 12.0, (32 * RPM_TO_RAD
 static const std::map<unsigned int, ServoModel> ModelToParams = {
   {29,MX28},
   {310, MX64}
-};
+}; // Replication of Python dictionary
 
 
 };  // namespace HansCuteRobot

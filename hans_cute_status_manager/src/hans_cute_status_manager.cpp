@@ -20,23 +20,36 @@ void HansCuteStatusManager::setServoDriver(std::shared_ptr<HansCuteRobot::ServoD
   servo_driver_ptr_ = servo_driver_ptr;
 }
 
-bool HansCuteStatusManager::connect()
+void HansCuteStatusManager::getJointParameters(std::vector<ServoParams> &servo_params)
+{
+  servo_params = servos_params_;
+}
+
+void HansCuteStatusManager::getJointIds(std::vector<unsigned int> &joint_ids)
+{
+  servo_params = servos_params_;
+}
+
+bool HansCuteStatusManager::initialise()
 {
   findMotors();
 
   if (running_)
   {
+    // Start tjhe 2 status threads
   }
 }
 
 bool HansCuteStatusManager::disconnect()
 {
+  running_ = false;
 }
 
 bool HansCuteStatusManager::findMotors()
 {
   std::vector<unsigned int> motor_ids_list;
   unsigned int num_retries = 5;
+  servos_params_.clear();
   for (int servo_id = min_motor_id_; servo_id <= max_motor_id_; servo_id++)
   {
     for (int ping_try = 1; ping_try <= num_retries; ping_try++)
@@ -71,7 +84,8 @@ bool HansCuteStatusManager::findMotors()
         {
           continue;
         }
-        fillMotorParameters(servo_id, model_number);
+
+        fillServoParams(servo_id, model_number);
         servo_params_filled = true;
         break;
       }
@@ -91,10 +105,38 @@ bool HansCuteStatusManager::findMotors()
     std::cout << "Unable to find any servo from the given ids" << std::endl;
     return false;
   }
-
   return true;
 }
 
-bool HansCuteStatusManager::fillMotorParameters(const unsigned int &servo_id, const unsigned int &model_number)
+bool HansCuteStatusManager::fillServoParams(const unsigned int &servo_id, const unsigned int &model_number)
 {
+  ServoParams servo_param;
+  servo_param.id = servo_id;
+  servo_param.model_number = model_number;
+
+  // Joint Limits
+  HansCuteRobot::AngleLimits angle_lims;
+  if (!servo_driver_ptr_->getAngleLimits(servo_id, angle_lims))
+  {
+    return false;
+  }
+  HansCuteRobot::ServoModel model = HansCuteRobot::ModelToParams.at(model_number);
+
+  double range_radians = model.range_degrees * (M_PI / 180);
+  double rad_per_enc_tick = range_radians / model.encoder_resolution;
+  double enc_tick_per_rad = model.encoder_resolution / range_radians;
+
+  servo_param.raw_min = angle_lims.min;
+  servo_param.raw_max = angle_lims.max;
+  servo_param.raw_origin = angle_lims.min + (angle_lims.max - angle_lims.min) / 2;
+
+  // Radians
+  servo_param.min = (servo_param.raw_min - servo_param.raw_origin) * rad_per_enc_tick;
+  servo_param.max = (servo_param.raw_max - servo_param.raw_origin) * rad_per_enc_tick;
+
+  servo_param.rad_per_enc_tick = rad_per_enc_tick;
+  servo_param.enc_tick_per_rad = enc_tick_per_rad;
+
+  servos_params_.push_back(servo_param);
+  return true;
 }

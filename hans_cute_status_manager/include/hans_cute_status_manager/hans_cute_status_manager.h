@@ -2,7 +2,7 @@
 #define _HANS_CUTE_STATUS_MANAGER_H_
 
 #include <thread>
-
+#include "status_manager_datatype.h"
 #include "hans_cute_driver/hans_cute_driver.h"
 
 class HansCuteStatusManager
@@ -15,12 +15,15 @@ public:
 
   void setServoDriver(std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr);
 
-  bool connect();
+  void getJointParameters(std::vector<ServoParams> &servo_params);
+  void getJointIds(std::vector<unsigned int> &joint_ids);
+
+  bool initialise();
   bool disconnect();
 
 private:
   bool findMotors();
-  bool fillMotorParameters(const unsigned int &servo_id, const unsigned int &model_number);
+  bool fillServoParams(const unsigned int &servo_id, const unsigned int &model_number);
 
   void updateMotorState();
   void publishDiagnosticInformation();
@@ -35,6 +38,8 @@ private:
   unsigned int max_motor_id_;
 
   bool running_;
+
+  std::vector<ServoParams> servos_params_;
 
   std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr_;
 

@@ -1,6 +1,8 @@
 
 #include "hans_cute_driver/hans_cute_driver.h"
 #include "hans_cute_driver/hans_cute_const.h"
+
+#include "hans_cute_status_manager/hans_cute_status_manager.h"
 #include "hans_cute_controllers/joint_position_controller.h"
 
 int main()
@@ -15,6 +17,9 @@ int main()
   std::string port_namespace = "ttyUSB0";
 
   // Start status manager
+  std::shared_ptr<HansCuteStatusManager> status_manager = std::make_shared<HansCuteStatusManager>();
+  status_manager->setServoDriver(servo_driver_ptr);
+  status_manager->initialise();
 
   // Start controller
   std::shared_ptr<HansCuteController::JointPositionController> joint_position_controller =

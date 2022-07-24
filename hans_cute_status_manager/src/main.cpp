@@ -11,7 +11,7 @@ int main()
   std::shared_ptr<HansCuteStatusManager> status_manager = std::make_shared<HansCuteStatusManager>();
   status_manager->setServoDriver(servo_driver_ptr);
 
-  status_manager->connect();
+  status_manager->initialise();
 
   return 0;
 }

@@ -2,6 +2,7 @@
 #define _JOINT_POSITION_CONTROLLER_H_
 
 #include "controller.h"
+#include "hans_cute_status_manager/status_manager_datatype.h"
 
 namespace HansCuteController
 {
@@ -23,10 +24,10 @@ namespace HansCuteController
     void getJointVelocites();
 
   private:
-    std::vector<JointParams> joint_params_;
+    std::vector<ServoParams> joint_params_;
     std::vector<HansCuteRobot::ServoModel> servos_model_;
 
-    void posRadToRaw(const double &rad, unsigned int &raw, const JointParams &params);
+    void posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params);
   };
 };
 
