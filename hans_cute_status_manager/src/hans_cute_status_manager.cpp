@@ -27,7 +27,7 @@ void HansCuteStatusManager::getJointParameters(std::vector<ServoParams> &servo_p
 
 void HansCuteStatusManager::getJointIds(std::vector<unsigned int> &joint_ids)
 {
-  servo_params = servos_params_;
+  joint_ids = joint_ids_;
 }
 
 bool HansCuteStatusManager::initialise()
@@ -36,7 +36,7 @@ bool HansCuteStatusManager::initialise()
 
   if (running_)
   {
-    // Start tjhe 2 status threads
+    
   }
 }
 
@@ -50,6 +50,7 @@ bool HansCuteStatusManager::findMotors()
   std::vector<unsigned int> motor_ids_list;
   unsigned int num_retries = 5;
   servos_params_.clear();
+  joint_ids_.clear();
   for (int servo_id = min_motor_id_; servo_id <= max_motor_id_; servo_id++)
   {
     for (int ping_try = 1; ping_try <= num_retries; ping_try++)
@@ -70,6 +71,7 @@ bool HansCuteStatusManager::findMotors()
 
       // IF we can ping this servo then, we should be able to retrieve the servo params
       std::cout << "Found servo " << servo_id << std::endl;
+      joint_ids_.push_back(servo_id);
       bool servo_params_filled = false;
       for (int query_param_try = 1; query_param_try <= num_retries; query_param_try++)
       {

@@ -102,8 +102,7 @@ find_package(catkin REQUIRED COMPONENTS
 # # DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include
-
-  # LIBRARIES hans_cute_status_manager
+  LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS hans_cute_driver roscpp
 
   # DEPENDS system_lib
@@ -125,14 +124,17 @@ include_directories(
 )
 
 # # Declare a C++ library
-# add_library(${PROJECT_NAME}
-# src/${PROJECT_NAME}/hans_cute_status_manager.cpp
-# )
+# add_library(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
 
 # # Add cmake target dependencies of the library
 # # as an example, code may need to be generated before libraries
 # # either from message generation or dynamic reconfigure
 # add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+# # Specify libraries to link a library or executable target against
+# target_link_libraries(${PROJECT_NAME}
+#   ${catkin_LIBRARIES}
+# )
 
 # # Declare a C++ executable
 # # With catkin_make all packages are built within a single CMake context

@@ -44,9 +44,9 @@ namespace HansCuteController
     joint_ids_ = joint_ids;
   }
 
-  void Controller::setServoModels(const std::vector<HansCuteRobot::ServoModel> &models)
+  void Controller::setServoParams(const std::vector<ServoParams> &servo_params)
   {
-    models_ = models;
+    joint_params_ = servo_params;
   }
 
   void Controller::setJointNames(const std::vector<std::string> &joint_names)

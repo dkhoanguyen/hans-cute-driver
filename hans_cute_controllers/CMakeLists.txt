@@ -102,9 +102,8 @@ find_package(catkin REQUIRED COMPONENTS
 # # CATKIN_DEPENDS: catkin_packages dependent projects also need
 # # DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-
   INCLUDE_DIRS include
-  # LIBRARIES hans_cute_controllers
+  LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS hans_cute_driver hans_cute_status_manager roscpp
   # DEPENDS system_lib
 )
@@ -112,24 +111,30 @@ catkin_package(
 # ##########
 # # Build ##
 # ##########
-set(${PROJECT_NAME}_SOURCES
+set(${PROJECT_NAME}_LIBSOURCES
   src/controller.cpp
   src/joint_position_controller.cpp
-  src/main.cpp
 )
+
+set(${PROJECT_NAME}_SOURCES
+  nodes/src/controller_manager.cpp
+  nodes/src/main.cpp
+)
+
 
 # # Specify additional locations of header files
 # # Your package locations should be listed before other locations
+# # We should separate library source and application source
 include_directories(
-
   include
   ${catkin_INCLUDE_DIRS}
+  nodes/include
 )
 
 # # Declare a C++ library
-# add_library(${PROJECT_NAME}
-# src/${PROJECT_NAME}/hans_cute_controllers.cpp
-# )
+add_library(${PROJECT_NAME}
+  ${${PROJECT_NAME}_LIBSOURCES}
+)
 
 # # Add cmake target dependencies of the library
 # # as an example, code may need to be generated before libraries

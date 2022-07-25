@@ -24,7 +24,7 @@ namespace HansCuteController
 
     // Setters
     void setJointIds(const std::vector<unsigned int> &joint_ids);
-    void setServoModels(const std::vector<HansCuteRobot::ServoModel> &models);
+    void setServoParams(const std::vector<ServoParams> &servo_params);
 
     void setJointNames(const std::vector<std::string> &joint_names);
     void setJointSpeeds(const std::vector<unsigned int> &joint_speeds);
@@ -48,6 +48,7 @@ namespace HansCuteController
     bool running_;
 
     std::vector<unsigned int> joint_ids_;
+    std::vector<ServoParams> joint_params_;
     std::vector<std::string> joint_names_;
     std::vector<unsigned int> joint_speeds_;
     std::vector<unsigned int> compliance_slopes_;

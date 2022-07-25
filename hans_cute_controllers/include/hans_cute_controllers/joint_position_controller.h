@@ -24,7 +24,6 @@ namespace HansCuteController
     void getJointVelocites();
 
   private:
-    std::vector<ServoParams> joint_params_;
     std::vector<HansCuteRobot::ServoModel> servos_model_;
 
     void posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params);

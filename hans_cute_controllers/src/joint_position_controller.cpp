@@ -14,11 +14,20 @@ namespace HansCuteController
 
   void JointPositionController::initialise()
   {
-    
+    for(unsigned int joint_id : joint_ids_)
+    {
+      unsigned int position = 0;
+      servo_driver_ptr_->getPosition(joint_id,position);
+      servo_driver_ptr_->setPosition(joint_id,position);
+    }
   }
 
   void JointPositionController::start()
   {
+    for(unsigned int joint_id : joint_ids_)
+    {
+      servo_driver_ptr_->setTorqueEnable(joint_id,true);
+    }
   }
 
   void JointPositionController::stop()

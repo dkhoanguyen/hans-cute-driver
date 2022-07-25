@@ -40,6 +40,7 @@ private:
   bool running_;
 
   std::vector<ServoParams> servos_params_;
+  std::vector<unsigned int> joint_ids_;
 
   std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr_;
 
