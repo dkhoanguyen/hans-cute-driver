@@ -22,7 +22,7 @@ int main()
   status_manager->initialise();
 
   // Start controller
-  std::shared_ptr<HansCuteController::JointPositionController> joint_position_controller =
+  std::shared_ptr<HansCuteController::Controller> joint_position_controller =
       std::make_shared<HansCuteController::JointPositionController>(servo_driver_ptr,
                                                                     controller_namespace,
                                                                     port_namespace);

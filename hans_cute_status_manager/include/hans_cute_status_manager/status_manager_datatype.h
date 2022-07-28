@@ -8,12 +8,16 @@ struct ServoParams
   unsigned int id;
   unsigned int model_number;
   std::string model_name;
+  std::string joint_name;
 
   // Raw data
   unsigned int raw_origin;
   unsigned int raw_min;
   unsigned int raw_max;
   static const unsigned int raw_full_sweep = 4096;
+
+  unsigned int speed;
+  unsigned int acceleration;
 
   // Radian
   double min;

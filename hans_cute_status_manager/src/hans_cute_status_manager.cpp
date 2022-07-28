@@ -20,6 +20,24 @@ void HansCuteStatusManager::setServoDriver(std::shared_ptr<HansCuteRobot::ServoD
   servo_driver_ptr_ = servo_driver_ptr;
 }
 
+void HansCuteStatusManager::updateJointParams(const std::vector<ServoParams> &servo_params)
+{
+  if (!servo_found_)
+  {
+    return;
+  }
+  for (unsigned int id : joint_ids_)
+  {
+    servos_params_.at(id).joint_name = servo_params.at(id).joint_name;
+    servos_params_.at(id).raw_min = servo_params.at(id).raw_min;
+    servos_params_.at(id).raw_max = servo_params.at(id).raw_max;
+    servos_params_.at(id).raw_origin = servo_params.at(id).raw_origin;
+
+    servos_params_.at(id).speed = servo_params.at(id).speed;
+    servos_params_.at(id).acceleration = servo_params.at(id).acceleration;
+  }
+}
+
 void HansCuteStatusManager::getJointParameters(std::vector<ServoParams> &servo_params)
 {
   servo_params = servos_params_;
@@ -33,11 +51,6 @@ void HansCuteStatusManager::getJointIds(std::vector<unsigned int> &joint_ids)
 bool HansCuteStatusManager::initialise()
 {
   findMotors();
-
-  if (running_)
-  {
-    
-  }
 }
 
 bool HansCuteStatusManager::disconnect()
@@ -105,8 +118,10 @@ bool HansCuteStatusManager::findMotors()
   if (motor_ids_list.size() == 0)
   {
     std::cout << "Unable to find any servo from the given ids" << std::endl;
+    servo_found_ = false;
     return false;
   }
+  servo_found_ = true;
   return true;
 }
 

@@ -14,6 +14,7 @@ public:
   ~HansCuteStatusManager();
 
   void setServoDriver(std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr);
+  void updateJointParams(const std::vector<ServoParams> &servo_params);
 
   void getJointParameters(std::vector<ServoParams> &servo_params);
   void getJointIds(std::vector<unsigned int> &joint_ids);
@@ -38,6 +39,7 @@ private:
   unsigned int max_motor_id_;
 
   bool running_;
+  bool servo_found_;
 
   std::vector<ServoParams> servos_params_;
   std::vector<unsigned int> joint_ids_;

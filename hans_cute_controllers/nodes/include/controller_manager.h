@@ -11,6 +11,7 @@
 
 #include "hans_cute_controllers/controller.h"
 #include "hans_cute_status_manager/hans_cute_status_manager.h"
+#include "hans_cute_controllers/joint_position_controller.h"
 #include "hans_cute_driver/hans_cute_driver.h"
 
 struct JointDataBuffer
@@ -26,6 +27,7 @@ public:
   HansCuteControllerManager(ros::NodeHandle &nh, const std::string &port);
   ~HansCuteControllerManager();
 
+  void initialise();
   void start();
   void stop();
 
@@ -43,11 +45,15 @@ private:
   ros::Subscriber joint_target_sub_;
 
 private:
+  std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr_;
   std::shared_ptr<HansCuteController::Controller> joint_controller_ptr_;
   std::shared_ptr<HansCuteStatusManager> status_manager_ptr_;
 
   JointDataBuffer joint_state_buff_;
   JointDataBuffer target_joint_buff_;
+
+  std::string node_name_;
+  std::string node_namespace_;
 };
 
 #endif
