@@ -14,9 +14,16 @@
 #include "hans_cute_controllers/joint_position_controller.h"
 #include "hans_cute_driver/hans_cute_driver.h"
 
-struct JointDataBuffer
+struct JointStateDataBuffer
 {
-  std::deque<sensor_msgs::JointState> joint_deq;
+  std::deque<sensor_msgs::JointState> data_deq;
+  std::mutex mtx;
+  std::atomic<bool> received;
+};
+
+struct JointTrajectoryDataBuffer
+{
+  std::deque<trajectory_msgs::JointTrajectory> data_deq;
   std::mutex mtx;
   std::atomic<bool> received;
 };
@@ -24,7 +31,7 @@ struct JointDataBuffer
 class HansCuteControllerManager
 {
 public:
-  HansCuteControllerManager(ros::NodeHandle &nh, const std::string &port);
+  HansCuteControllerManager(ros::NodeHandle &nh);
   ~HansCuteControllerManager();
 
   void initialise();
@@ -45,15 +52,21 @@ private:
   ros::Subscriber joint_target_sub_;
 
 private:
+  void controlThread();
+
+  std::unique_ptr<std::thread> control_thread_;
+
   std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr_;
-  std::shared_ptr<HansCuteController::Controller> joint_controller_ptr_;
+  std::shared_ptr<HansCuteController::Controller> controller_ptr_;
   std::shared_ptr<HansCuteStatusManager> status_manager_ptr_;
 
-  JointDataBuffer joint_state_buff_;
-  JointDataBuffer target_joint_buff_;
+  JointStateDataBuffer joint_state_buff_;
+  JointTrajectoryDataBuffer target_joint_buff_;
 
   std::string node_name_;
   std::string node_namespace_;
+
+  std::atomic<bool> running_;
 };
 
 #endif

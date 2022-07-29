@@ -1,7 +1,9 @@
 #include "controller_manager.h"
 
-HansCuteControllerManager::HansCuteControllerManager(ros::NodeHandle &nh, const std::string &port) : nh_(nh), rate_(10)
+HansCuteControllerManager::HansCuteControllerManager(ros::NodeHandle &nh) : nh_(nh), rate_(10)
 {
+  joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
+  joint_target_sub_ = nh_.subscribe("target_joint_states", 10, &HansCuteControllerManager::jointTargetCallback, this);
 }
 
 HansCuteControllerManager::~HansCuteControllerManager()
@@ -45,7 +47,7 @@ void HansCuteControllerManager::initialise()
   {
     // Params
     ServoParams joint_param;
-    
+
     // Get Joint Name first
     std::string joint_name = "joint_" + std::to_string(id);
     if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joint_params/" + joint_name + "/name", joint_name)))
@@ -97,28 +99,64 @@ void HansCuteControllerManager::initialise()
     joint_params.push_back(joint_param);
   }
 
+  // Update user defined parameters with robot hardware
   status_manager_ptr_->updateJointParams(joint_params);
 
   // Controller
-  joint_controller_ptr_ = std::make_shared<HansCuteController::JointPositionController>(servo_driver_ptr_,
-                                                                                        node_namespace_,
-                                                                                        port_namespace);
+  controller_ptr_ = std::make_shared<HansCuteController::JointPositionController>(servo_driver_ptr_,
+                                                                                  node_namespace_,
+                                                                                  port_namespace);
 
-  joint_controller_ptr_->setJointNames(joint_names);
+  controller_ptr_->setJointNames(joint_names);
 
   // Joint IDS
   std::vector<unsigned int> joint_ids;
   status_manager_ptr_->getJointIds(joint_ids);
-  joint_controller_ptr_->setJointIds(joint_ids);
+  controller_ptr_->setJointIds(joint_ids);
 
   // Joint Params
   std::vector<ServoParams> joint_param;
   status_manager_ptr_->getJointParameters(joint_param);
-  joint_controller_ptr_->setServoParams(joint_param);
+  controller_ptr_->setServoParams(joint_param);
 
   // Initialise
-  joint_controller_ptr_->initialise();
+  status_manager_ptr_->start();
+  controller_ptr_->start();
+}
 
-  // Start
-  joint_controller_ptr_->start();
+void HansCuteControllerManager::start()
+{
+  control_thread_ = std::make_unique<std::thread>(std::thread(&HansCuteControllerManager::controlThread, this));
+}
+
+void HansCuteControllerManager::stop()
+{
+}
+
+void HansCuteControllerManager::jointTargetCallback(const trajectory_msgs::JointTrajectoryConstPtr &joint_traj_msg)
+{
+  std::unique_lock<std::mutex> lck(target_joint_buff_.mtx);
+  target_joint_buff_.data_deq.push_back(*joint_traj_msg);
+  if (target_joint_buff_.data_deq.size() > 10)
+  {
+    target_joint_buff_.data_deq.pop_front();
+  }
+  target_joint_buff_.received = true;
+}
+
+void HansCuteControllerManager::controlThread()
+{
+  ROS_INFO("HansCuteControllerManager: Control thread started.");
+  while (ros::ok())
+  {
+    if (target_joint_buff_.received)
+    {
+      HansCuteController::Data joint_pos_data;
+      std::unique_lock<std::mutex> lck(target_joint_buff_.mtx);
+      joint_pos_data.set(target_joint_buff_.data_deq.back().points.at(0).positions);
+      controller_ptr_->processCommand(joint_pos_data);
+      target_joint_buff_.received = false;
+    }
+  }
+  rate_.sleep();
 }

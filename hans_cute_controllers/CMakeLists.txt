@@ -103,7 +103,7 @@ find_package(catkin REQUIRED COMPONENTS
 # # DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
   INCLUDE_DIRS include nodes/include
-  LIBRARIES ${PROJECT_NAME}
+  LIBRARIES ${PROJECT_NAME} 
   CATKIN_DEPENDS hans_cute_driver hans_cute_status_manager roscpp
   # DEPENDS system_lib
 )

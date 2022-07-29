@@ -20,14 +20,13 @@ public:
   void getJointIds(std::vector<unsigned int> &joint_ids);
 
   bool initialise();
+  bool start();
+  bool stop();
   bool disconnect();
 
 private:
-  bool findMotors();
+  bool findServos();
   bool fillServoParams(const unsigned int &servo_id, const unsigned int &model_number);
-
-  void updateMotorState();
-  void publishDiagnosticInformation();
 
   std::string port_name_;
   std::string port_namespace_;

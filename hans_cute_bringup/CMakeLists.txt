@@ -9,7 +9,6 @@ project(hans_cute_bringup)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   roscpp
-  hans_cute_status_manager
   hans_cute_controllers
 )
 

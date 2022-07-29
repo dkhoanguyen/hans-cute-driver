@@ -35,6 +35,11 @@ void HansCuteStatusManager::updateJointParams(const std::vector<ServoParams> &se
 
     servos_params_.at(id).speed = servo_params.at(id).speed;
     servos_params_.at(id).acceleration = servo_params.at(id).acceleration;
+
+    // Update hardware with new values
+    servo_driver_ptr_->setAngleLimits(id,servos_params_.at(id).raw_min,servos_params_.at(id).raw_max);
+    servo_driver_ptr_->setSpeed(id,servos_params_.at(id).speed);
+    servo_driver_ptr_->setAcceleration(id,servos_params_.at(id).acceleration);
   }
 }
 
@@ -50,7 +55,17 @@ void HansCuteStatusManager::getJointIds(std::vector<unsigned int> &joint_ids)
 
 bool HansCuteStatusManager::initialise()
 {
-  findMotors();
+  findServos();
+}
+
+bool HansCuteStatusManager::start()
+{
+
+}
+
+bool HansCuteStatusManager::stop()
+{
+  running_ = false;
 }
 
 bool HansCuteStatusManager::disconnect()
@@ -58,7 +73,7 @@ bool HansCuteStatusManager::disconnect()
   running_ = false;
 }
 
-bool HansCuteStatusManager::findMotors()
+bool HansCuteStatusManager::findServos()
 {
   std::vector<unsigned int> motor_ids_list;
   unsigned int num_retries = 5;
