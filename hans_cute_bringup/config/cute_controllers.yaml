@@ -1,0 +1,117 @@
+joint1_controller:
+    controller:
+        package: cute_servo_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: joint1
+    joint_speed: 3.0
+    motor:
+        id: 0
+        init: 2048
+        min: 342
+        max: 3754
+        acceleration: 0
+        pid: [30, 1, 0]
+
+joint2_controller:
+    controller:
+        package: cute_servo_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: joint2
+    joint_speed: 3.0
+    motor:
+        id: 1
+        init: 2048
+        min: 853
+        max: 3243
+        acceleration: 0
+        pid: [30, 1, 0]
+
+joint3_controller:
+    controller:
+        package: cute_servo_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: joint3
+    joint_speed: 3.0
+    motor:
+        id: 2
+        init: 2048
+        min: 342
+        max: 3754
+        acceleration: 0
+        pid: [30, 1, 0]
+
+joint4_controller:
+    controller:
+        package: cute_servo_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: joint4
+    joint_speed: 3.0
+    motor:
+        id: 3
+        init: 2048
+        min: 853
+        max: 3243
+        acceleration: 0
+        pid: [30, 1, 0]
+
+joint5_controller:
+    controller:
+        package: cute_servo_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: joint5
+    joint_speed: 3.0
+    motor:
+        id: 4
+        init: 2048
+        min: 853
+        max: 3243
+        acceleration: 0
+        pid: [30, 1, 0]
+
+joint6_controller:
+    controller:
+        package: cute_servo_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: joint6
+    joint_speed: 3.0
+    motor:
+        id: 5
+        init: 2048
+        min: 853
+        max: 3243
+        acceleration: 0
+        pid: [30, 1, 0]
+
+joint7_controller:
+    controller:
+        package: cute_servo_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: joint7
+    joint_speed: 3.0
+    motor:
+        id: 6
+        init: 2048
+        min: 342
+        max: 3754
+        acceleration: 0
+        pid: [30, 1, 0]
+
+claw_controller:
+    controller:
+        package: cute_servo_controllers
+        module: joint_position_controller
+        type: JointPositionController
+    joint_name: claw
+    joint_speed: 1.0
+    motor:
+        id: 7
+        init: 513
+        min: 0
+        max: 515

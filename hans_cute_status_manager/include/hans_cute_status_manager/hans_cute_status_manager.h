@@ -14,19 +14,19 @@ public:
   ~HansCuteStatusManager();
 
   void setServoDriver(std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr);
+  void updateJointParams(const std::vector<ServoParams> &servo_params);
 
   void getJointParameters(std::vector<ServoParams> &servo_params);
   void getJointIds(std::vector<unsigned int> &joint_ids);
 
   bool initialise();
+  bool start();
+  bool stop();
   bool disconnect();
 
 private:
-  bool findMotors();
+  bool findServos();
   bool fillServoParams(const unsigned int &servo_id, const unsigned int &model_number);
-
-  void updateMotorState();
-  void publishDiagnosticInformation();
 
   std::string port_name_;
   std::string port_namespace_;
@@ -38,8 +38,10 @@ private:
   unsigned int max_motor_id_;
 
   bool running_;
+  bool servo_found_;
 
   std::vector<ServoParams> servos_params_;
+  std::vector<unsigned int> joint_ids_;
 
   std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr_;
 

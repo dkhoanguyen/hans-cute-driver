@@ -22,7 +22,7 @@ int main()
   status_manager->initialise();
 
   // Start controller
-  std::shared_ptr<HansCuteController::JointPositionController> joint_position_controller =
+  std::shared_ptr<HansCuteController::Controller> joint_position_controller =
       std::make_shared<HansCuteController::JointPositionController>(servo_driver_ptr,
                                                                     controller_namespace,
                                                                     port_namespace);
@@ -41,15 +41,28 @@ int main()
 
   // Joint IDS
   std::vector<unsigned int> joint_ids;
-  for (unsigned int id = 0; id <= 6 ; id++) 
-  {
-    joint_ids.push_back(id);
-  }
-
+  status_manager->getJointIds(joint_ids);
   joint_position_controller->setJointIds(joint_ids);
 
-  // Joint Models
-  // This requires status manager
+  // Joint Params
+  std::vector<ServoParams> joint_param;
+  status_manager->getJointParameters(joint_param);
+  joint_position_controller->setServoParams(joint_param);
+
+  // Initialise
+  joint_position_controller->initialise();
+
+  // Start
+  joint_position_controller->start();
+
+  HansCuteController::Data data;
+  std::vector<double> joint_pos;
+  for (int i = 0; i < joint_param.size(); i++)
+  {
+    joint_pos.push_back(0);
+  }
+  data.set(joint_pos);
+  joint_position_controller->processCommand(data);
 
   return 0;
 }

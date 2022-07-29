@@ -15,14 +15,12 @@ namespace HansCuteController
     virtual void get(std::vector<double> &data)
     {
       std::unique_lock<std::mutex> lock(mtx_);
-      lock.lock();
       data = data_;
     }
 
     virtual void set(const std::vector<double> &data)
     {
       std::unique_lock<std::mutex> lock(mtx_);
-      lock.lock();
       data_ = data;
     }
 

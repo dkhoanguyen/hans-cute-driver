@@ -20,6 +20,29 @@ void HansCuteStatusManager::setServoDriver(std::shared_ptr<HansCuteRobot::ServoD
   servo_driver_ptr_ = servo_driver_ptr;
 }
 
+void HansCuteStatusManager::updateJointParams(const std::vector<ServoParams> &servo_params)
+{
+  if (!servo_found_)
+  {
+    return;
+  }
+  for (unsigned int id : joint_ids_)
+  {
+    servos_params_.at(id).joint_name = servo_params.at(id).joint_name;
+    servos_params_.at(id).raw_min = servo_params.at(id).raw_min;
+    servos_params_.at(id).raw_max = servo_params.at(id).raw_max;
+    servos_params_.at(id).raw_origin = servo_params.at(id).raw_origin;
+
+    servos_params_.at(id).speed = servo_params.at(id).speed;
+    servos_params_.at(id).acceleration = servo_params.at(id).acceleration;
+
+    // Update hardware with new values
+    servo_driver_ptr_->setAngleLimits(id,servos_params_.at(id).raw_min,servos_params_.at(id).raw_max);
+    servo_driver_ptr_->setSpeed(id,servos_params_.at(id).speed);
+    servo_driver_ptr_->setAcceleration(id,servos_params_.at(id).acceleration);
+  }
+}
+
 void HansCuteStatusManager::getJointParameters(std::vector<ServoParams> &servo_params)
 {
   servo_params = servos_params_;
@@ -27,17 +50,22 @@ void HansCuteStatusManager::getJointParameters(std::vector<ServoParams> &servo_p
 
 void HansCuteStatusManager::getJointIds(std::vector<unsigned int> &joint_ids)
 {
-  servo_params = servos_params_;
+  joint_ids = joint_ids_;
 }
 
 bool HansCuteStatusManager::initialise()
 {
-  findMotors();
+  findServos();
+}
 
-  if (running_)
-  {
-    // Start tjhe 2 status threads
-  }
+bool HansCuteStatusManager::start()
+{
+
+}
+
+bool HansCuteStatusManager::stop()
+{
+  running_ = false;
 }
 
 bool HansCuteStatusManager::disconnect()
@@ -45,11 +73,12 @@ bool HansCuteStatusManager::disconnect()
   running_ = false;
 }
 
-bool HansCuteStatusManager::findMotors()
+bool HansCuteStatusManager::findServos()
 {
   std::vector<unsigned int> motor_ids_list;
   unsigned int num_retries = 5;
   servos_params_.clear();
+  joint_ids_.clear();
   for (int servo_id = min_motor_id_; servo_id <= max_motor_id_; servo_id++)
   {
     for (int ping_try = 1; ping_try <= num_retries; ping_try++)
@@ -70,6 +99,7 @@ bool HansCuteStatusManager::findMotors()
 
       // IF we can ping this servo then, we should be able to retrieve the servo params
       std::cout << "Found servo " << servo_id << std::endl;
+      joint_ids_.push_back(servo_id);
       bool servo_params_filled = false;
       for (int query_param_try = 1; query_param_try <= num_retries; query_param_try++)
       {
@@ -103,8 +133,10 @@ bool HansCuteStatusManager::findMotors()
   if (motor_ids_list.size() == 0)
   {
     std::cout << "Unable to find any servo from the given ids" << std::endl;
+    servo_found_ = false;
     return false;
   }
+  servo_found_ = true;
   return true;
 }
 
