@@ -13,7 +13,7 @@
 #include <csignal>
 
 // New native serial library
-#include "custom_serial_port.h"
+#include "custom_serial_port/custom_serial_port.h"
 
 #include "serial_command_interface.h"
 
