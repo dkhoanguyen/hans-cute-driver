@@ -23,7 +23,7 @@ uint8_t HansCuteRobot::ServoSerialComms::calcCheckSum(std::vector<uint8_t> &data
 {
   unsigned int checksum = 0;
   unsigned int payload_sum = 0;
-  unsigned int bytes_to_read = data.at(_sample_packet.length); // Add ID and length as well
+  unsigned int bytes_to_read = data.at(sample_packet_.length); // Add ID and length as well
 
   for (int i = 2; i <= 2 + bytes_to_read; i++)
   {
@@ -34,8 +34,8 @@ uint8_t HansCuteRobot::ServoSerialComms::calcCheckSum(std::vector<uint8_t> &data
 }
 
 //
-bool HansCuteRobot::ServoSerialComms::read(const uint8_t &id, const uint8_t &address, const uint8_t &size,
-                                           std::vector<uint8_t> &returned_data, unsigned long &timestamp)
+bool HansCuteRobot::ServoSerialComms::read(const uint8_t &id, const uint8_t &address, 
+                                           const uint8_t &size, unsigned long &timestamp)
 {
   // Number of bytes following standard header (0xFF, 0xFF, id, length)
   uint8_t length = 4;
@@ -47,17 +47,11 @@ bool HansCuteRobot::ServoSerialComms::read(const uint8_t &id, const uint8_t &add
   uint8_t checksum = 255 - ((id + length + (uint8_t)InstructionSet::READ_DATA + address + size) % 256);
   packet.push_back(checksum);
 
-  // Thread safe execution of
-  if (!writeCommand(packet))
-  {
-    return false;
-  }
-  // Read response ans return data
-  return readResponse(returned_data);
+  return writeCommand(packet);
 }
 
-bool HansCuteRobot::ServoSerialComms::write(const uint8_t &id, const uint8_t &address, const std::vector<uint8_t> &data,
-                                            std::vector<uint8_t> &returned_data, unsigned long &timestamp)
+bool HansCuteRobot::ServoSerialComms::write(const uint8_t &id, const uint8_t &address,
+                                            const std::vector<uint8_t> &data, unsigned long &timestamp)
 {
   // Number of bytes following standard header (0xFF, 0xFF, id, length)
   uint8_t length = 3 + (uint8_t)data.size();
@@ -76,14 +70,7 @@ bool HansCuteRobot::ServoSerialComms::write(const uint8_t &id, const uint8_t &ad
   uint8_t checksum = 255 - (sum % 256);
   packet.push_back(checksum);
 
-  // Thread safe execution of
-  if (!writeCommand(packet))
-  {
-    std::cout << "Failed to write packet" << std::endl;
-    return false;
-  }
-  // Read response ans return data
-  return readResponse(returned_data);
+  return writeCommand(packet);
 }
 
 bool HansCuteRobot::ServoSerialComms::syncWrite(const uint8_t &address, const std::vector<std::vector<uint8_t>> &data)
@@ -119,7 +106,7 @@ bool HansCuteRobot::ServoSerialComms::syncWrite(const uint8_t &address, const st
   return readResponse(returned_data);
 }
 
-bool HansCuteRobot::ServoSerialComms::ping(const uint8_t &id, std::vector<uint8_t> &returned_data)
+bool HansCuteRobot::ServoSerialComms::ping(const uint8_t &id)
 {
   uint8_t length = 2;
   std::vector<uint8_t> packet = {0xFF, 0xFF, id, length, (uint8_t)InstructionSet::PING};
@@ -131,16 +118,5 @@ bool HansCuteRobot::ServoSerialComms::ping(const uint8_t &id, std::vector<uint8_
   uint8_t checksum = 255 - ((id + length + (uint8_t)InstructionSet::PING) % 256);
   packet.push_back(checksum);
 
-  // Thread safe execution of
-  if (!writeCommand(packet))
-  {
-    return false;
-  }
-  // Read response ans return data
-  if (!readResponse(returned_data))
-  {
-    return false;
-  }
-  // We need to handle error code returned from the robot
-  return true;
+  return writeCommand(packet);
 }

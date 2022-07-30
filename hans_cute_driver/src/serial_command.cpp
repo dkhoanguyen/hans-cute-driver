@@ -1,9 +1,9 @@
 #include "hans_cute_driver/serial_command.h"
 
 SerialCommand::SerialCommand(const std::string port, const long baudrate)
-    : _port(port), _baudrate(baudrate), _timeout(30), _num_tries(5)
+    : port_(port), baudrate_(baudrate), timeout_(30), num_tries_(5)
 {
-  _serial_port = std::make_shared<SerialPort>(port, baudrate, _timeout);
+  // serial_port_ = std::make_shared<SerialPort>(port, baudrate, timeout_);
 
   // TODO:Register sigterm handler
   //  signal(SIGTERM,SerialCommand::sigTermHandler);
@@ -23,7 +23,7 @@ void SerialCommand::open() const
 {
   try
   {
-    _serial_port->openPort();
+    serial_port_->openPort();
   }
   catch (const std::exception &e)
   {
@@ -33,23 +33,23 @@ void SerialCommand::open() const
 
 void SerialCommand::close() const
 {
-  _serial_port->closePort();
+  serial_port_->closePort();
 }
 
 bool SerialCommand::readResponse(std::vector<uint8_t> &response)
 {
-  std::unique_lock<std::mutex> lck(_comms_mtx);
+  std::unique_lock<std::mutex> lck(comms_mtx_);
   std::vector<uint8_t> returned_data;
-  if (_serial_port->available() == 0)
+  if (serial_port_->available() == 0)
   {
     return false;
   }
 
   // To support testing this should be a separate function
   unsigned int num_byte_read = 0;
-  for (int i = 0; i < _num_tries; i++)
+  for (int i = 0; i < num_tries_; i++)
   {
-    num_byte_read = _serial_port->read(returned_data);
+    num_byte_read = serial_port_->read(returned_data);
     // If we actually receive data
     if (num_byte_read > 0)
     {
@@ -62,9 +62,9 @@ bool SerialCommand::readResponse(std::vector<uint8_t> &response)
     return false;
   }
   // Verify header first
-  for (int i = 0; i < _sample_packet.headers.size(); i++)
+  for (int i = 0; i < sample_packet_.headers.size(); i++)
   {
-    if (returned_data.at(i) != _sample_packet.headers.at(i))
+    if (returned_data.at(i) != sample_packet_.headers.at(i))
     {
       return false;
     }
@@ -83,11 +83,11 @@ bool SerialCommand::readResponse(std::vector<uint8_t> &response)
 
 bool SerialCommand::writeCommand(const std::vector<uint8_t> &command)
 {
-  std::unique_lock<std::mutex> lck(_comms_mtx);
+  std::unique_lock<std::mutex> lck(comms_mtx_);
   try
   {
-    _serial_port->write(command);
-    _serial_port->wait();
+    serial_port_->write(command);
+    serial_port_->wait();
     return true;
   }
   catch (const std::exception &se)
@@ -99,5 +99,10 @@ bool SerialCommand::writeCommand(const std::vector<uint8_t> &command)
 
 void SerialCommand::setSamplePacket(const SamplePacket sample_packet)
 {
-  _sample_packet = sample_packet;
+  sample_packet_ = sample_packet;
+}
+
+void SerialCommand::setSerialPort(const std::shared_ptr<SerialPortInterface> &serial_port)
+{
+  serial_port_ = serial_port;
 }

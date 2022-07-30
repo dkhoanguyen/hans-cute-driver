@@ -60,7 +60,7 @@ enum class NumStopBits
   TWO,
 };
 
-class SerialPort : public SerialPortInterfaces
+class SerialPort : public SerialPortInterface
 {
 public:
   SerialPort(const std::string& port, const speed_t& baud_rate, int32_t timeout);

@@ -91,7 +91,8 @@ bool HansCuteStatusManager::findServos()
 
       // We should wrap this ping function in driver maybe
       std::vector<uint8_t> response;
-      servo_driver_ptr_->ping((uint8_t)servo_id, response);
+      servo_driver_ptr_->ping((uint8_t)servo_id);
+      servo_driver_ptr_->readResponse(response);
       if (response.size() == 0)
       {
         continue;

@@ -7,6 +7,7 @@ add_compile_options(-std=c++17)
 
 set(${PROJECT_NAME}_SOURCES
   src/custom_serial_port.cpp
+  src/dummy_serial_port.cpp
 )
 
 # Add a library with the above sources

@@ -38,8 +38,8 @@ bool HansCuteRobot::ServoDriver::setAngleLimits(const uint8_t &servo_id, const u
   std::vector<uint8_t> raw_limit = HansCuteRobot::AngleLimits::getRawData(min_limit, max_limit);
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::CW_ANGLE_LIMIT_L, raw_limit, returned_data, timestamp);
-  return true;
+  write(servo_id, (uint8_t)ControlTableConstant::CW_ANGLE_LIMIT_L, raw_limit, timestamp);
+  return readResponse(returned_data);
 }
 
 bool HansCuteRobot::ServoDriver::setVoltageLimits(const uint8_t &servo_id, const VoltageLimits &voltage_limits)
@@ -52,12 +52,8 @@ bool HansCuteRobot::ServoDriver::setMaxTorque(const uint8_t &servo_id, const uns
   std::vector<uint8_t> raw_limit = HansCuteRobot::TorqueLimit::getRawData(max_torque);
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::MAX_TORQUE_L, raw_limit, returned_data, timestamp);
-  for (uint8_t data : returned_data)
-  {
-    std::cout << (int)data << std::endl;
-  }
-  return true;
+  write(servo_id, (uint8_t)ControlTableConstant::MAX_TORQUE_L, raw_limit, timestamp);
+  return readResponse(returned_data);
 }
 
 //===============================================================//
@@ -68,8 +64,8 @@ bool HansCuteRobot::ServoDriver::setTorqueEnable(const uint8_t &servo_id, const 
   std::vector<uint8_t> data({(uint8_t)enabled});
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::TORQUE_ENABLE, data, returned_data, timestamp);
-  return true;
+  write(servo_id, (uint8_t)ControlTableConstant::TORQUE_ENABLE, data, timestamp);
+  return readResponse(returned_data);
 }
 bool HansCuteRobot::ServoDriver::setComplianceMargin()
 {
@@ -97,24 +93,24 @@ bool HansCuteRobot::ServoDriver::setAcceleration(const uint8_t &servo_id, const 
   std::vector<uint8_t> raw_data = HansCuteRobot::ServoAcceleration::getRawData(acceleration);
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::GOAL_ACCELERATION, raw_data, returned_data, timestamp);
-  return true;
+  write(servo_id, (uint8_t)ControlTableConstant::GOAL_ACCELERATION, raw_data, timestamp);
+  return readResponse(returned_data);
 }
 bool HansCuteRobot::ServoDriver::setPosition(const uint8_t &servo_id, const unsigned int &position)
 {
   std::vector<uint8_t> raw_postion = HansCuteRobot::ServoPosition::getRawData(position);
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::GOAL_POSITION_L, raw_postion, returned_data, timestamp);
-  return true;
+  write(servo_id, (uint8_t)ControlTableConstant::GOAL_POSITION_L, raw_postion, timestamp);
+  return readResponse(returned_data);
 }
 bool HansCuteRobot::ServoDriver::setSpeed(const uint8_t &servo_id, const unsigned int &speed)
 {
   std::vector<uint8_t> raw_speed = HansCuteRobot::ServoSpeed::getRawData(speed);
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::GOAL_SPEED_L, raw_speed, returned_data, timestamp);
-  return true;
+  write(servo_id, (uint8_t)ControlTableConstant::GOAL_SPEED_L, raw_speed, timestamp);
+  return readResponse(returned_data);
 }
 
 bool HansCuteRobot::ServoDriver::setTorqueLimit(const uint8_t &servo_id, const unsigned int &torque_limit)
@@ -122,8 +118,8 @@ bool HansCuteRobot::ServoDriver::setTorqueLimit(const uint8_t &servo_id, const u
   std::vector<uint8_t> raw_torque = HansCuteRobot::TorqueLimit::getRawData(torque_limit);
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::TORQUE_LIMIT_L, raw_torque, returned_data, timestamp);
-  return true;
+  write(servo_id, (uint8_t)ControlTableConstant::TORQUE_LIMIT_L, raw_torque, timestamp);
+  return readResponse(returned_data);
 }
 bool HansCuteRobot::ServoDriver::setGoalTorque()
 {
@@ -220,7 +216,8 @@ bool HansCuteRobot::ServoDriver::getModelNumber(const int &servo_id, unsigned in
 {
   std::vector<uint8_t> response;
   unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::MODEL_NUMBER_L, 2, response, timestamp))
+  read((uint8_t)servo_id, (uint8_t)ControlTableConstant::MODEL_NUMBER_L, 2, timestamp);
+  if (!readResponse(response))
   {
     return false;
   }
@@ -240,7 +237,8 @@ bool HansCuteRobot::ServoDriver::getAngleLimits(const int &servo_id, HansCuteRob
 {
   std::vector<uint8_t> response;
   unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::CW_ANGLE_LIMIT_L, 4, response, timestamp))
+  read((uint8_t)servo_id, (uint8_t)ControlTableConstant::CW_ANGLE_LIMIT_L, 4, timestamp);
+  if (!readResponse(response))
   {
     return false;
   }
@@ -252,7 +250,8 @@ bool HansCuteRobot::ServoDriver::getTorqueEnabled(const int &servo_id, bool &ena
 {
   std::vector<uint8_t> response;
   unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::TORQUE_ENABLE, 1, response, timestamp))
+  read((uint8_t)servo_id, (uint8_t)ControlTableConstant::TORQUE_ENABLE, 1, timestamp);
+  if (!readResponse(response))
   {
     return false;
   }
@@ -263,7 +262,8 @@ bool HansCuteRobot::ServoDriver::getMaxTorque(const int &servo_id, unsigned int 
 {
   std::vector<uint8_t> response;
   unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::MAX_TORQUE_L, 2, response, timestamp))
+  read((uint8_t)servo_id, (uint8_t)ControlTableConstant::MAX_TORQUE_L, 2, timestamp);
+  if (!readResponse(response))
   {
     return false;
   }
@@ -279,7 +279,8 @@ bool HansCuteRobot::ServoDriver::getPosition(const int &servo_id, unsigned int &
 {
   std::vector<uint8_t> response;
   unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::PRESENT_POSITION_L, 2, response, timestamp))
+  read((uint8_t)servo_id, (uint8_t)ControlTableConstant::PRESENT_POSITION_L, 2, timestamp);
+  if (!readResponse(response))
   {
     return false;
   }
@@ -290,7 +291,8 @@ bool HansCuteRobot::ServoDriver::getSpeed(const int &servo_id, unsigned int &spe
 {
   std::vector<uint8_t> response;
   unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::GOAL_SPEED_L, 2, response, timestamp))
+  read((uint8_t)servo_id, (uint8_t)ControlTableConstant::GOAL_SPEED_L, 2, timestamp);
+  if (!readResponse(response))
   {
     return false;
   }
@@ -311,7 +313,8 @@ bool HansCuteRobot::ServoDriver::getLock(const int &servo_id, bool &lock)
 {
   std::vector<uint8_t> response;
   unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::LOCK, 1, response, timestamp))
+  read((uint8_t)servo_id, (uint8_t)ControlTableConstant::LOCK, 1, timestamp);
+  if (!readResponse(response))
   {
     return false;
   }
@@ -323,11 +326,11 @@ bool HansCuteRobot::ServoDriver::getFeedback(const int &servo_id, ServoFeedback 
 {
   std::vector<uint8_t> response;
   unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::GOAL_POSITION_L, 17, response, timestamp))
+  read((uint8_t)servo_id, (uint8_t)ControlTableConstant::GOAL_POSITION_L, 17, timestamp);
+  if (!readResponse(response))
   {
     return false;
   }
-
   feedback = ServoFeedback::getData((uint8_t)servo_id, response, timestamp);
   return true;
 }
