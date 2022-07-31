@@ -90,6 +90,9 @@ public:
 private:
   void configure();
 
+  void setReadDataStream(const std::vector<uint8_t> &data) {};
+  void getWriteDataStream(std::vector<uint8_t> &data) {};
+
   std::string port_;
   speed_t baud_rate_;
 

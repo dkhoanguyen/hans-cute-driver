@@ -4,7 +4,7 @@
 int main()
 {
   std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr =
-      std::make_shared<HansCuteRobot::ServoDriver>("/dev/ttyUSB0", 250000);
+      std::make_shared<HansCuteRobot::ServoDriver>();
   servo_driver_ptr->open();
   
   // Start status manager

@@ -9,7 +9,7 @@
 int main(int argc, char *argv[])
 {
   std::shared_ptr<SerialPortInterface> serial_port = std::make_shared<DummySerialPort>("/dev/ttyUSB0", 250000);
-  HansCuteRobot::ServoDriver hans_robot("/dev/ttyUSB0", 250000);
+  HansCuteRobot::ServoDriver hans_robot;
   hans_robot.setSerialPort(serial_port);
   hans_robot.open();
 

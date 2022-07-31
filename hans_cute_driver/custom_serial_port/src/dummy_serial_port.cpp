@@ -18,10 +18,7 @@ void DummySerialPort::closePort()
 
 void DummySerialPort::write(const std::vector<uint8_t> &data)
 {
-  for (const uint8_t data_point : data)
-  {
-    std::cout << (int)data_point << std::endl;
-  }
+  write_data_stream_ = data;
 }
 
 void DummySerialPort::wait()
@@ -30,9 +27,21 @@ void DummySerialPort::wait()
 
 unsigned int DummySerialPort::read(std::vector<uint8_t> &data)
 {
+  data = read_data_stream_;
+  return read_data_stream_.size();
 }
 
 int DummySerialPort::available()
 {
   return 1;
+}
+
+void DummySerialPort::getWriteDataStream(std::vector<uint8_t> &data)
+{
+  data = write_data_stream_;
+}
+
+void DummySerialPort::setReadDataStream(const std::vector<uint8_t> &data)
+{
+  read_data_stream_ = data;
 }

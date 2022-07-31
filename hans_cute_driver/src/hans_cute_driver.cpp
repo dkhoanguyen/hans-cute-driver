@@ -2,8 +2,8 @@
 
 const SamplePacket HansCuteRobot::ServoDriver::DXL_PACKET{std::vector<uint8_t>({0xFF, 0xFF}), 2, 3, 4};
 
-HansCuteRobot::ServoDriver::ServoDriver(const std::string port, const long baudrate)
-    : HansCuteRobot::ServoSerialComms(port, baudrate)
+HansCuteRobot::ServoDriver::ServoDriver()
+    : HansCuteRobot::ServoSerialComms()
 {
   // Update paket format at initialisation
   setSamplePacket(HansCuteRobot::ServoDriver::DXL_PACKET);

@@ -210,13 +210,16 @@ target_link_libraries(${PROJECT_NAME}_node
 # ############
 
 # # Add gtest based cpp test target and link libraries
-# set(${PROJECT_NAME}_TESTS
-# )
-# catkin_add_gtest(${PROJECT_NAME}-test ${${PROJECT_NAME}_TESTS})
+set(${PROJECT_NAME}_TESTS
+  test/test_hans_cute_driver.cpp
+)
+catkin_add_gtest(${PROJECT_NAME}-test ${${PROJECT_NAME}_TESTS})
 
-# if(TARGET ${PROJECT_NAME}-test)
-# target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-# endif()
+target_link_libraries(${PROJECT_NAME}-test 
+  ${PROJECT_NAME}
+  custom_serial_port
+)
+
 
 # # Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

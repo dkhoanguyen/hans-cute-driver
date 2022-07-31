@@ -1,6 +1,6 @@
 #include "hans_cute_driver/hans_cute_serial.h"
 
-HansCuteRobot::ServoSerialComms::ServoSerialComms(const std::string port, const long baudrate) : SerialCommand(port, baudrate)
+HansCuteRobot::ServoSerialComms::ServoSerialComms() : SerialCommand()
 {
 }
 

@@ -1,7 +1,7 @@
 #include "hans_cute_driver/serial_command.h"
 
-SerialCommand::SerialCommand(const std::string port, const long baudrate)
-    : port_(port), baudrate_(baudrate), timeout_(30), num_tries_(5)
+SerialCommand::SerialCommand(const unsigned int &timeout, const unsigned int &num_tries)
+    : timeout_(timeout), num_tries_(num_tries)
 {
   // serial_port_ = std::make_shared<SerialPort>(port, baudrate, timeout_);
 
@@ -9,7 +9,7 @@ SerialCommand::SerialCommand(const std::string port, const long baudrate)
   //  signal(SIGTERM,SerialCommand::sigTermHandler);
 }
 
-SerialCommand::SerialCommand() : SerialCommand("/dev/ttyUSB0", 115200)
+SerialCommand::SerialCommand() : SerialCommand(30,5)
 {
 }
 

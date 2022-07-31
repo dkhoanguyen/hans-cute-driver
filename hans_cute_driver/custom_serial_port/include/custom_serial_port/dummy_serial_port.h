@@ -21,9 +21,14 @@ public:
   unsigned int read(std::vector<uint8_t> &data);
   int available();
 
+  void setReadDataStream(const std::vector<uint8_t> &data);
+  void getWriteDataStream(std::vector<uint8_t> &data);
+
 private:
   std::string port_;
   unsigned int baud_rate_;
+  std::vector<uint8_t> write_data_stream_;
+  std::vector<uint8_t> read_data_stream_;
 };
 
 #endif

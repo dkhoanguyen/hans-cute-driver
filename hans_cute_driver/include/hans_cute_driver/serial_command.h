@@ -28,11 +28,7 @@ struct SamplePacket
 class SerialCommand : public SerialCommandInterface
 {
 public:
-  SerialCommand(const std::string port, const long baudrate);
-  /**
-   * @brief Default constructor
-   *
-   */
+  SerialCommand(const unsigned int &timeout, const unsigned int &num_tries);
   SerialCommand();
   virtual ~SerialCommand();
 
@@ -49,8 +45,6 @@ public:
 
 protected:
   std::shared_ptr<SerialPortInterface> serial_port_;
-  std::string port_;
-  unsigned int baudrate_;
   unsigned int timeout_;
   unsigned int num_tries_;
   SamplePacket sample_packet_;

@@ -9,7 +9,7 @@ namespace HansCuteRobot
   class ServoSerialComms : public SerialCommand
   {
   public:
-    ServoSerialComms(const std::string port, const long baudrate);
+    ServoSerialComms();
     ~ServoSerialComms();
 
     bool readResponse(std::vector<uint8_t> &response);
