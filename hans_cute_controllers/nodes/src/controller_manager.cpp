@@ -33,7 +33,7 @@ void HansCuteControllerManager::initialise()
 
   std::string port_namespace = port.substr(5); // Remove /dev/ from port name
   // Shared pointer for hardware driver
-  servo_driver_ptr_ = std::make_shared<HansCuteRobot::ServoDriver>(port, baud_rate);
+  servo_driver_ptr_ = std::make_shared<HansCuteRobot::ServoDriver>();
   servo_driver_ptr_->open();
 
   status_manager_ptr_ = std::make_shared<HansCuteStatusManager>();

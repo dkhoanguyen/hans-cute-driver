@@ -37,9 +37,9 @@ void HansCuteStatusManager::updateJointParams(const std::vector<ServoParams> &se
     servos_params_.at(id).acceleration = servo_params.at(id).acceleration;
 
     // Update hardware with new values
-    servo_driver_ptr_->setAngleLimits(id,servos_params_.at(id).raw_min,servos_params_.at(id).raw_max);
-    servo_driver_ptr_->setSpeed(id,servos_params_.at(id).speed);
-    servo_driver_ptr_->setAcceleration(id,servos_params_.at(id).acceleration);
+    servo_driver_ptr_->setAngleLimits(id, servos_params_.at(id).raw_min, servos_params_.at(id).raw_max);
+    servo_driver_ptr_->setSpeed(id, servos_params_.at(id).speed);
+    servo_driver_ptr_->setAcceleration(id, servos_params_.at(id).acceleration);
   }
 }
 
@@ -60,7 +60,6 @@ bool HansCuteStatusManager::initialise()
 
 bool HansCuteStatusManager::start()
 {
-
 }
 
 bool HansCuteStatusManager::stop()

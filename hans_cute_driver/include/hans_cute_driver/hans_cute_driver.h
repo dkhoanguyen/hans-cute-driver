@@ -12,7 +12,7 @@ namespace HansCuteRobot
   public:
     static const SamplePacket DXL_PACKET;
 
-    ServoDriver(const std::string port, const long baudrate);
+    ServoDriver();
     ~ServoDriver();
 
     //====================================================================//

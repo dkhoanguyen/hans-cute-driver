@@ -3,10 +3,15 @@
 #include "hans_cute_driver/hans_cute_driver.h"
 #include "hans_cute_driver/hans_cute_datatype.h"
 
-int main(int argc, char* argv[])
+#include "custom_serial_port/dummy_serial_port.h"
+#include "custom_serial_port/serial_port_interface.h"
+
+int main(int argc, char *argv[])
 {
-  // HansCuteRobot::ServoDriver hans_robot("/dev/ttyUSB0", 250000);
-  // hans_robot.open();
+  std::shared_ptr<SerialPortInterface> serial_port = std::make_shared<DummySerialPort>("/dev/ttyUSB0", 250000);
+  HansCuteRobot::ServoDriver hans_robot;
+  hans_robot.setSerialPort(serial_port);
+  hans_robot.open();
 
   // std::vector<unsigned int> servo_ids;
   // std::vector<unsigned int> positions;
@@ -17,13 +22,13 @@ int main(int argc, char* argv[])
   //   servo_ids.push_back(i);
   //   positions.push_back(2048);
   //   speeds.push_back(1023);
-  
+
   //   unsigned int max_torque = 0;
   //   hans_robot.getMaxTorque(i,max_torque);
   //   std::cout << max_torque << std::endl;
 
   //   hans_robot.setTorqueEnable(i, true);
-    
+
   //   unsigned int position = 0;
   //   hans_robot.getPosition(i, position);
   //   hans_robot.setPosition(i, position);

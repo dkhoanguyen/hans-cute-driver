@@ -1,12 +1,12 @@
 #include "hans_cute_driver/hans_cute_serial.h"
 
-HansCuteRobot::ServoSerialComms::ServoSerialComms(const std::string port, const long baudrate) : SerialCommand(port, baudrate)
+HansCuteRobot::ServoSerialComms::ServoSerialComms() : SerialCommand()
 {
 }
 
 HansCuteRobot::ServoSerialComms::~ServoSerialComms()
 {
-  std::cout << "ServoSerialComms Destructor" << std::endl;
+  // std::cout << "ServoSerialComms Destructor" << std::endl;
 }
 
 bool HansCuteRobot::ServoSerialComms::readResponse(std::vector<uint8_t> &response)
@@ -23,7 +23,7 @@ uint8_t HansCuteRobot::ServoSerialComms::calcCheckSum(std::vector<uint8_t> &data
 {
   unsigned int checksum = 0;
   unsigned int payload_sum = 0;
-  unsigned int bytes_to_read = data.at(_sample_packet.length); // Add ID and length as well
+  unsigned int bytes_to_read = data.at(sample_packet_.length); // Add ID and length as well
 
   for (int i = 2; i <= 2 + bytes_to_read; i++)
   {

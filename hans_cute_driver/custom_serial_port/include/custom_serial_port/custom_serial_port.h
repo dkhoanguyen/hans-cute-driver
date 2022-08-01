@@ -37,6 +37,8 @@
 #include <asm/ioctls.h>
 #include <asm/termbits.h>
 
+#include "custom_serial_port/serial_port_interface.h"
+
 enum class NumDataBits
 {
   FIVE,
@@ -58,7 +60,7 @@ enum class NumStopBits
   TWO,
 };
 
-class SerialPort
+class SerialPort : public SerialPortInterface
 {
 public:
   SerialPort(const std::string& port, const speed_t& baud_rate, int32_t timeout);
@@ -87,6 +89,9 @@ public:
 
 private:
   void configure();
+
+  void setReadDataStream(const std::vector<uint8_t> &data) {};
+  void getWriteDataStream(std::vector<uint8_t> &data) {};
 
   std::string port_;
   speed_t baud_rate_;
