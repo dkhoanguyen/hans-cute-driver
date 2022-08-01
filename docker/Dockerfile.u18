@@ -1,0 +1,17 @@
+FROM ros:melodic-robot
+
+RUN apt update && apt install -y g++ git autogen autoconf build-essential cmake
+
+RUN echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
+RUN bin/bash -c "source /opt/ros/melodic/setup.bash && \
+                    mkdir -p /hans_ws/src && \
+                    cd /hans_ws/src && \
+                    catkin_init_workspace && \
+                    cd /hans_ws/ && \
+                    catkin_make && \
+                    cd src/ && \
+                    git clone -b testing/test-build-process-for-16-18-20 https://github.com/dkhoanguyen/hans-cute-driver && \
+                    cd /hans_ws/ && \
+                    catkin_make"
+
+CMD [ "bash", "-c", "tail -f /dev/null" ] 
