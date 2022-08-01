@@ -1,5 +1,5 @@
 #include "gtest/gtest.h"
-
+#include <memory>
 #include "hans_cute_driver/hans_cute_driver.h"
 #include "hans_cute_driver/hans_cute_const.h"
 #include "custom_serial_port/dummy_serial_port.h"
