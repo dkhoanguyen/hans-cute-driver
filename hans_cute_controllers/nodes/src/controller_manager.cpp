@@ -126,7 +126,7 @@ void HansCuteControllerManager::initialise()
 
 void HansCuteControllerManager::start()
 {
-  control_thread_ = std::make_unique<std::thread>(std::thread(&HansCuteControllerManager::controlThread, this));
+  control_thread_ = std::unique_ptr<std::thread>(new std::thread(&HansCuteControllerManager::controlThread, this));
 }
 
 void HansCuteControllerManager::stop()

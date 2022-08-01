@@ -4,6 +4,7 @@
 #include <cmath>
 #include <deque>
 #include <thread>
+#include <memory>
 
 #include <ros/ros.h>
 #include "trajectory_msgs/JointTrajectory.h"
