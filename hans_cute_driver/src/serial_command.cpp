@@ -15,7 +15,7 @@ SerialCommand::SerialCommand() : SerialCommand(30,5)
 
 SerialCommand::~SerialCommand()
 {
-  std::cout << "SerialCommand Destructor" << std::endl;
+  // std::cout << "SerialCommand Destructor" << std::endl;
   close();
 }
 

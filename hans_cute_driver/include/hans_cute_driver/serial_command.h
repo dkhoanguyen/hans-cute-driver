@@ -25,6 +25,13 @@ struct SamplePacket
   unsigned int data;            // Start position of data byte
 };
 
+enum class SerialError
+{
+  NO_RESPONSE = 0,
+  WRONG_HEADER = 1,
+  WRONG_CHECKSUM = 2,
+};
+
 class SerialCommand : public SerialCommandInterface
 {
 public:
