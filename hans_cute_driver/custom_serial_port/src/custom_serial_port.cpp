@@ -13,7 +13,7 @@ SerialPort::SerialPort(const std::string& port, const speed_t& baud_rate, int32_
   read_buffer_.reserve(read_buffer_size_B_);
 }
 
-SerialPort::SerialPort() : SerialPort("/dev/ttyUSB0",115200,50)
+SerialPort::SerialPort() : SerialPort("/dev/ttyUSB0",250000,50)
 {
 }
 
