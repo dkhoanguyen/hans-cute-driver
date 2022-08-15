@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(hans_cute_driver)
+project(serial_command_robot)
 
 # # Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -8,8 +8,10 @@ add_compile_options(-std=c++11)
 # # if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 # # is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  serial_command_robot
+  
 )
+
+add_subdirectory(serial_port)
 
 # # System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -100,11 +102,9 @@ find_package(catkin REQUIRED COMPONENTS
 # # CATKIN_DEPENDS: catkin_packages dependent projects also need
 # # DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-
-  INCLUDE_DIRS include
-  LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp serial_command_robot
-
+  INCLUDE_DIRS include serial_port/include
+  LIBRARIES LIBRARIES ${PROJECT_NAME} serial_port
+  CATKIN_DEPENDS roscpp
   # DEPENDS system_lib
 )
 
@@ -113,8 +113,7 @@ catkin_package(
 # ##########
 
 set(${PROJECT_NAME}_SOURCES
-  src/hans_cute_serial.cpp
-  src/hans_cute_driver.cpp
+  src/serial_command_robot.cpp
   src/main.cpp
 )
 
@@ -123,6 +122,7 @@ set(${PROJECT_NAME}_SOURCES
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  serial_port/include
 )
 
 # # Declare a C++ library
@@ -136,6 +136,7 @@ add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EX
 # # Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}
   ${catkin_LIBRARIES}
+  serial_port
 )
 
 # # Declare a C++ executable
@@ -156,6 +157,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 # # Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
+  serial_port
 )
 
 # ############
@@ -205,16 +207,10 @@ target_link_libraries(${PROJECT_NAME}_node
 # ############
 
 # # Add gtest based cpp test target and link libraries
-set(${PROJECT_NAME}_TESTS
-  test/test_hans_cute_driver.cpp
-)
-catkin_add_gtest(${PROJECT_NAME}-test ${${PROJECT_NAME}_TESTS})
-
-target_link_libraries(${PROJECT_NAME}-test 
-  ${PROJECT_NAME}
-  custom_serial_port
-)
-
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_serial_command_robot.cpp)
+# if(TARGET ${PROJECT_NAME}-test)
+# target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# endif()
 
 # # Add folders to be run by python nosetests
 # catkin_add_nosetests(test)

@@ -3,7 +3,7 @@
 
 #include <cmath>
 
-#include "serial_command.h"
+#include "serial_command_robot/serial_command_robot.h"
 namespace HansCuteRobot
 {
 struct ModelNumber

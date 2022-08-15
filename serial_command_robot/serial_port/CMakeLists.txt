@@ -1,6 +1,6 @@
 # Set the project name
 cmake_minimum_required(VERSION 3.0.2)
-project(custom_serial_port)
+project(serial_port)
 
 # # Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)

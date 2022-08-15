@@ -10,8 +10,8 @@
 #include "trajectory_msgs/JointTrajectory.h"
 #include "sensor_msgs/JointState.h"
 
-#include "custom_serial_port/custom_serial_port.h"
-#include "custom_serial_port/serial_port_interface.h"
+#include "serial_port/custom_serial_port.h"
+#include "serial_port/serial_port_interface.h"
 
 #include "hans_cute_controllers/controller.h"
 #include "hans_cute_status_manager/hans_cute_status_manager.h"

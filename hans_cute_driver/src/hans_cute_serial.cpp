@@ -1,6 +1,6 @@
 #include "hans_cute_driver/hans_cute_serial.h"
 
-HansCuteRobot::ServoSerialComms::ServoSerialComms() : SerialCommand()
+HansCuteRobot::ServoSerialComms::ServoSerialComms() : SerialCommandRobot()
 {
 }
 
@@ -9,14 +9,14 @@ HansCuteRobot::ServoSerialComms::~ServoSerialComms()
   // std::cout << "ServoSerialComms Destructor" << std::endl;
 }
 
-bool HansCuteRobot::ServoSerialComms::readResponse(std::vector<uint8_t> &response)
+int HansCuteRobot::ServoSerialComms::readResponse(std::vector<uint8_t> &response)
 {
-  return SerialCommand::readResponse(response);
+  return SerialCommandRobot::readResponse(response);
 }
 
-bool HansCuteRobot::ServoSerialComms::writeCommand(const std::vector<uint8_t> &command)
+int HansCuteRobot::ServoSerialComms::writeCommand(const std::vector<uint8_t> &command)
 {
-  return SerialCommand::writeCommand(command);
+  return SerialCommandRobot::writeCommand(command);
 }
 
 uint8_t HansCuteRobot::ServoSerialComms::calcCheckSum(std::vector<uint8_t> &data) const

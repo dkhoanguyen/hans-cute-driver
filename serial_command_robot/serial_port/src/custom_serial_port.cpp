@@ -1,4 +1,4 @@
-#include "custom_serial_port/custom_serial_port.h"
+#include "serial_port/custom_serial_port.h"
 
 SerialPort::SerialPort(const std::string& port, const speed_t& baud_rate, int32_t timeout)
   : port_(port)

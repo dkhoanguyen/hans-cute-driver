@@ -3,8 +3,8 @@
 #include "hans_cute_driver/hans_cute_driver.h"
 #include "hans_cute_driver/hans_cute_datatype.h"
 
-#include "custom_serial_port/custom_serial_port.h"
-#include "custom_serial_port/serial_port_interface.h"
+#include "serial_port/custom_serial_port.h"
+#include "serial_port/serial_port_interface.h"
 
 int main(int argc, char *argv[])
 {
