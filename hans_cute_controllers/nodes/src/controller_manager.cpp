@@ -128,11 +128,13 @@ void HansCuteControllerManager::initialise()
 
 void HansCuteControllerManager::start()
 {
+  running_ = true;
   control_thread_ = std::unique_ptr<std::thread>(new std::thread(&HansCuteControllerManager::controlThread, this));
 }
 
 void HansCuteControllerManager::stop()
 {
+  running_ = false;
 }
 
 void HansCuteControllerManager::jointTargetCallback(const trajectory_msgs::JointTrajectoryConstPtr &joint_traj_msg)
@@ -149,7 +151,7 @@ void HansCuteControllerManager::jointTargetCallback(const trajectory_msgs::Joint
 void HansCuteControllerManager::controlThread()
 {
   ROS_INFO("HansCuteControllerManager: Control thread started.");
-  while (ros::ok())
+  while (ros::ok() && running_)
   {
     if (target_joint_buff_.received)
     {
@@ -159,6 +161,6 @@ void HansCuteControllerManager::controlThread()
       controller_ptr_->processCommand(joint_pos_data);
       target_joint_buff_.received = false;
     }
+    rate_.sleep();
   }
-  rate_.sleep();
 }

@@ -1,4 +1,4 @@
-### Serial IO
+<!-- ### Serial IO
 #### Velocity control
 - [ ] Mercury
 - [x] Venus
@@ -19,4 +19,4 @@
 - [ ] Saturn
 - [ ] Uranus
 - [ ] Neptune
-- [ ] Comet Haley
+- [ ] Comet Haley -->
