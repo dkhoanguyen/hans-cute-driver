@@ -10,6 +10,9 @@
 #include "trajectory_msgs/JointTrajectory.h"
 #include "sensor_msgs/JointState.h"
 
+#include "custom_serial_port/custom_serial_port.h"
+#include "custom_serial_port/serial_port_interface.h"
+
 #include "hans_cute_controllers/controller.h"
 #include "hans_cute_status_manager/hans_cute_status_manager.h"
 #include "hans_cute_controllers/joint_position_controller.h"
@@ -57,6 +60,7 @@ private:
 
   std::unique_ptr<std::thread> control_thread_;
 
+  std::shared_ptr<SerialPortInterface> serial_port_ptr_;
   std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr_;
   std::shared_ptr<HansCuteController::Controller> controller_ptr_;
   std::shared_ptr<HansCuteStatusManager> status_manager_ptr_;

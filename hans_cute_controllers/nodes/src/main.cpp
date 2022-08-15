@@ -21,7 +21,7 @@ int main(int argc, char **argv)
   {
     rate.sleep();
   }
-
+  controller_manager.stop();
   spinner.stop();
   ros::waitForShutdown();
   return 0;

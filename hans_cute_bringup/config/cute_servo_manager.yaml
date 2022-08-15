@@ -1,9 +1,0 @@
-revolute_controllers: [joint1, joint2, joint3, joint4, joint5, joint6, joint7]
-prismatic_controllers: [claw]
-prismatic_factors: [[-0.0072, -0.005]]
-#prismatic_factors: [[1, 0]]
-
-robot_arm_names: [cute]
-cute_controller_names: [joint1, joint2, joint3, joint4, joint5, joint6, joint7]
-cute_go_home_time: 5 # reference: 5 - 15
-

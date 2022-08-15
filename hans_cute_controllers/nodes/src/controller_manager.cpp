@@ -32,8 +32,10 @@ void HansCuteControllerManager::initialise()
   }
 
   std::string port_namespace = port.substr(5); // Remove /dev/ from port name
+  serial_port_ptr_ = std::make_shared<SerialPort>(port, baud_rate, 50);
   // Shared pointer for hardware driver
   servo_driver_ptr_ = std::make_shared<HansCuteRobot::ServoDriver>();
+  servo_driver_ptr_->setSerialPort(serial_port_ptr_);
   servo_driver_ptr_->open();
 
   status_manager_ptr_ = std::make_shared<HansCuteStatusManager>();
@@ -82,8 +84,8 @@ void HansCuteControllerManager::initialise()
     joint_param.raw_max = raw_max;
 
     // Joint speed and accelaration
-    int speed = 1023;
-    int acceleration = 1023;
+    int speed = 300;
+    int acceleration = 20;
 
     if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joint_params/" + joint_name + "/speed", speed)))
     {
