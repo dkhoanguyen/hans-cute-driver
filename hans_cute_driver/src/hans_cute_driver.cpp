@@ -14,6 +14,83 @@ HansCuteRobot::ServoDriver::~ServoDriver()
   // std::cout << "ServoDriver destructor" << std::endl;
 }
 
+bool HansCuteRobot::ServoDriver::getJointPosition(const std::vector<unsigned int> &joint_ids,
+                                                  std::vector<unsigned int> &positions)
+{
+  positions.clear();
+  for(const unsigned int id : joint_ids)
+  {
+    unsigned int position = 0;
+    getPosition(id, position);
+    positions.push_back(position);
+  }
+}
+
+bool HansCuteRobot::ServoDriver::setJointPosition(const std::vector<unsigned int> &joint_ids,
+                                                  const std::vector<unsigned int> &positions)
+{
+  // Prepare data for sync_write
+  std::vector<std::vector<uint8_t>> data_lists;
+  for (int indx = 0; indx < joint_ids.size(); indx++)
+  {
+    std::vector<uint8_t> data;
+    data.push_back((uint8_t)joint_ids.at(indx));
+    std::vector<uint8_t> position = HansCuteRobot::ServoPosition::getRawData(positions.at(indx));
+    data.insert(data.end(), position.begin(), position.end());
+    data_lists.push_back(data);
+  }
+  syncWrite((uint8_t)ControlTableConstant::GOAL_POSITION_L, data_lists);
+  return true;
+}
+
+bool HansCuteRobot::ServoDriver::getJointSpeed(const std::vector<unsigned int> &joint_ids,
+                                               std::vector<unsigned int> &speeds)
+{
+  speeds.clear();
+  for(const unsigned int id : joint_ids)
+  {
+    unsigned int speed = 0;
+    getSpeed(id, speed);
+    speeds.push_back(speed);
+  }
+}
+bool HansCuteRobot::ServoDriver::setJointSpeed(const std::vector<unsigned int> &joint_ids,
+                                               const std::vector<unsigned int> &speeds)
+{
+  // Prepare data for sync_write
+  std::vector<std::vector<uint8_t>> data_lists;
+  for (int indx = 0; indx < joint_ids.size(); indx++)
+  {
+    std::vector<uint8_t> data;
+    data.push_back((uint8_t)joint_ids.at(indx));
+    std::vector<uint8_t> speed = HansCuteRobot::ServoSpeed::getRawData(speeds.at(indx));
+    data.insert(data.end(), speed.begin(), speed.end());
+    data_lists.push_back(data);
+  }
+  syncWrite((uint8_t)ControlTableConstant::GOAL_SPEED_L, data_lists);
+  return true;
+}
+
+bool HansCuteRobot::ServoDriver::getJointAccceleration(const std::vector<unsigned int> &joint_ids,
+                                                       std::vector<unsigned int> &accelerations)
+{
+  accelerations.clear();
+  for(const unsigned int id : joint_ids)
+  {
+    unsigned int acceleration = 0;
+    getAcceleration(id, acceleration);
+    accelerations.push_back(acceleration);
+  }
+}
+bool HansCuteRobot::ServoDriver::setJointAcceleration(const std::vector<unsigned int> &joint_ids,
+                                                      const std::vector<unsigned int> &accelerations)
+{
+  for(unsigned int id = 0; id < joint_ids.size(); id++)
+  {
+    setAcceleration(joint_ids.at(id), accelerations.at(id));
+  }
+}
+
 //====================================================================//
 // These function modify EEPROM data which persists after power cycle //
 //====================================================================//
@@ -158,34 +235,12 @@ bool HansCuteRobot::ServoDriver::setMultiComplianceSlope()
 bool HansCuteRobot::ServoDriver::setMultiPosition(const std::vector<unsigned int> &servo_ids,
                                                   const std::vector<unsigned int> &positions)
 {
-  // Prepare data for sync_write
-  std::vector<std::vector<uint8_t>> data_lists;
-  for (int indx = 0; indx < servo_ids.size(); indx++)
-  {
-    std::vector<uint8_t> data;
-    data.push_back((uint8_t)servo_ids.at(indx));
-    std::vector<uint8_t> position = HansCuteRobot::ServoPosition::getRawData(positions.at(indx));
-    data.insert(data.end(), position.begin(), position.end());
-    data_lists.push_back(data);
-  }
-  syncWrite((uint8_t)ControlTableConstant::GOAL_POSITION_L, data_lists);
-  return true;
+  
 }
 bool HansCuteRobot::ServoDriver::setMultiSpeed(const std::vector<unsigned int> &servo_ids,
                                                const std::vector<unsigned int> &speeds)
 {
-  // Prepare data for sync_write
-  std::vector<std::vector<uint8_t>> data_lists;
-  for (int indx = 0; indx < servo_ids.size(); indx++)
-  {
-    std::vector<uint8_t> data;
-    data.push_back((uint8_t)servo_ids.at(indx));
-    std::vector<uint8_t> speed = HansCuteRobot::ServoSpeed::getRawData(speeds.at(indx));
-    data.insert(data.end(), speed.begin(), speed.end());
-    data_lists.push_back(data);
-  }
-  syncWrite((uint8_t)ControlTableConstant::GOAL_SPEED_L, data_lists);
-  return true;
+  
 }
 
 bool HansCuteRobot::ServoDriver::setMultiTorqueLimit(const std::vector<unsigned int> &servo_ids,
@@ -295,6 +350,11 @@ bool HansCuteRobot::ServoDriver::getSpeed(const int &servo_id, unsigned int &spe
     return false;
   }
   speed = (unsigned int)HansCuteRobot::ServoSpeed::getData(response);
+  return true;
+}
+
+bool HansCuteRobot::ServoDriver::getAcceleration(const int &servo_id, unsigned int &acceleration)
+{
   return true;
 }
 

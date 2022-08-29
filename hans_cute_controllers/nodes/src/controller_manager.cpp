@@ -34,12 +34,12 @@ void HansCuteControllerManager::initialise()
   std::string port_namespace = port.substr(5); // Remove /dev/ from port name
   serial_port_ptr_ = std::make_shared<SerialPort>(port, baud_rate, 50);
   // Shared pointer for hardware driver
-  servo_driver_ptr_ = std::make_shared<HansCuteRobot::ServoDriver>();
-  servo_driver_ptr_->setSerialPort(serial_port_ptr_);
-  servo_driver_ptr_->open();
+  robot_driver_ptr_ = std::make_shared<HansCuteRobot::ServoDriver>();
+  robot_driver_ptr_->setSerialPort(serial_port_ptr_);
+  robot_driver_ptr_->open();
 
   status_manager_ptr_ = std::make_shared<HansCuteStatusManager>();
-  status_manager_ptr_->setServoDriver(servo_driver_ptr_);
+  status_manager_ptr_->setServoDriver(robot_driver_ptr_);
   status_manager_ptr_->initialise();
 
   // Joint Params
@@ -91,13 +91,13 @@ void HansCuteControllerManager::initialise()
     {
       ROS_ERROR("Unable to retrieve speed from parameter server");
     }
-    joint_param.raw_origin = raw_origin;
+    joint_param.speed = speed;
 
     if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joint_params/" + joint_name + "/acceleration", acceleration)))
     {
       ROS_ERROR("Unable to retrieve acceleration from parameter server");
     }
-    joint_param.raw_origin = raw_origin;
+    joint_param.acceleration = acceleration;
     joint_params.push_back(joint_param);
   }
 
@@ -105,7 +105,7 @@ void HansCuteControllerManager::initialise()
   status_manager_ptr_->updateJointParams(joint_params);
 
   // Controller
-  controller_ptr_ = std::make_shared<HansCuteController::JointPositionController>(servo_driver_ptr_,
+  controller_ptr_ = std::make_shared<HansCuteController::JointPositionController>(robot_driver_ptr_,
                                                                                   node_namespace_,
                                                                                   port_namespace);
 

@@ -50,13 +50,16 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>hans_cute_driver</build_depend>
+  <build_depend>serial_command_robot</build_depend>
   <build_depend>hans_cute_status_manager</build_depend>
   <build_depend>roscpp</build_depend>
   <build_export_depend>hans_cute_driver</build_export_depend>
   <build_export_depend>hans_cute_status_manager</build_export_depend>
+  <build_export_depend>serial_command_robot</build_export_depend>
   <build_export_depend>roscpp</build_export_depend>
   <exec_depend>hans_cute_driver</exec_depend>
   <exec_depend>hans_cute_status_manager</exec_depend>
+  <exec_depend>serial_command_robot</exec_depend>
   <exec_depend>roscpp</exec_depend>
 
 

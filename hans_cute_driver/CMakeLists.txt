@@ -212,7 +212,7 @@ catkin_add_gtest(${PROJECT_NAME}-test ${${PROJECT_NAME}_TESTS})
 
 target_link_libraries(${PROJECT_NAME}-test 
   ${PROJECT_NAME}
-  custom_serial_port
+  serial_port
 )
 
 

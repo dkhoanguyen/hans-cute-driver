@@ -17,7 +17,7 @@ HansCuteStatusManager::~HansCuteStatusManager()
 
 void HansCuteStatusManager::setServoDriver(std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr)
 {
-  servo_driver_ptr_ = servo_driver_ptr;
+  robot_driver_ptr_ = servo_driver_ptr;
 }
 
 void HansCuteStatusManager::updateJointParams(const std::vector<ServoParams> &servo_params)
@@ -37,9 +37,9 @@ void HansCuteStatusManager::updateJointParams(const std::vector<ServoParams> &se
     servos_params_.at(id).acceleration = servo_params.at(id).acceleration;
 
     // Update hardware with new values
-    servo_driver_ptr_->setAngleLimits(id, servos_params_.at(id).raw_min, servos_params_.at(id).raw_max);
-    servo_driver_ptr_->setSpeed(id, servos_params_.at(id).speed);
-    servo_driver_ptr_->setAcceleration(id, servos_params_.at(id).acceleration);
+    robot_driver_ptr_->setAngleLimits(id, servos_params_.at(id).raw_min, servos_params_.at(id).raw_max);
+    robot_driver_ptr_->setSpeed(id, servos_params_.at(id).speed);
+    robot_driver_ptr_->setAcceleration(id, servos_params_.at(id).acceleration);
   }
 }
 
@@ -90,7 +90,7 @@ bool HansCuteStatusManager::findServos()
 
       // We should wrap this ping function in driver maybe
       std::vector<uint8_t> response;
-      servo_driver_ptr_->ping((uint8_t)servo_id, response);
+      robot_driver_ptr_->ping((uint8_t)servo_id, response);
       if (response.size() == 0)
       {
         continue;
@@ -109,7 +109,7 @@ bool HansCuteStatusManager::findServos()
         }
 
         unsigned int model_number = 0;
-        if (!servo_driver_ptr_->getModelNumber(servo_id, model_number))
+        if (!robot_driver_ptr_->getModelNumber(servo_id, model_number))
         {
           continue;
         }
@@ -147,7 +147,7 @@ bool HansCuteStatusManager::fillServoParams(const unsigned int &servo_id, const 
 
   // Joint Limits
   HansCuteRobot::AngleLimits angle_lims;
-  if (!servo_driver_ptr_->getAngleLimits(servo_id, angle_lims))
+  if (!robot_driver_ptr_->getAngleLimits(servo_id, angle_lims))
   {
     return false;
   }

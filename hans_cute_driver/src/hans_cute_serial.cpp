@@ -9,16 +9,6 @@ HansCuteRobot::ServoSerialComms::~ServoSerialComms()
   // std::cout << "ServoSerialComms Destructor" << std::endl;
 }
 
-int HansCuteRobot::ServoSerialComms::readResponse(std::vector<uint8_t> &response)
-{
-  return SerialCommandRobot::readResponse(response);
-}
-
-int HansCuteRobot::ServoSerialComms::writeCommand(const std::vector<uint8_t> &command)
-{
-  return SerialCommandRobot::writeCommand(command);
-}
-
 uint8_t HansCuteRobot::ServoSerialComms::calcCheckSum(std::vector<uint8_t> &data) const
 {
   unsigned int checksum = 0;

@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+#include "serial_command_robot/serial_command_robot.h"
+
 #include "hans_cute_driver/hans_cute_driver.h"
 #include "hans_cute_driver/hans_cute_const.h"
 #include "hans_cute_driver/hans_cute_datatype.h"
@@ -18,7 +20,7 @@ namespace HansCuteController
   class Controller : public ControllerInterfaces
   {
   public:
-    Controller(const std::shared_ptr<HansCuteRobot::ServoDriver> &servo_driver_ptr,
+    Controller(const std::shared_ptr<SerialCommandRobot> &servo_driver_ptr,
                const std::string &controller_namespace, const std::string &port_namespace);
     virtual ~Controller();
 
@@ -28,10 +30,6 @@ namespace HansCuteController
 
     void setJointNames(const std::vector<std::string> &joint_names);
     void setJointSpeeds(const std::vector<unsigned int> &joint_speeds);
-    void setComplianceSlopes(const std::vector<unsigned int> &compliance_slopes);
-    void setComplianceMargins(const std::vector<unsigned int> &compliance_margins);
-    void setCompliancePunches(const std::vector<unsigned int> &compliance_punches);
-    void setTorqueLimits(const std::vector<double> &torque_limits);
 
     virtual void initialise() = 0;
     virtual void start() = 0;
@@ -40,7 +38,7 @@ namespace HansCuteController
     virtual void processCommand(Data &data) = 0;
 
   protected:
-    std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr_;
+    std::shared_ptr<SerialCommandRobot> robot_driver_ptr_;
 
     std::string controller_namespace_;
     std::string port_namespace_;

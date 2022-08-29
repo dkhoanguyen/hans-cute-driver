@@ -61,7 +61,7 @@ private:
   std::unique_ptr<std::thread> control_thread_;
 
   std::shared_ptr<SerialPortInterface> serial_port_ptr_;
-  std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr_;
+  std::shared_ptr<HansCuteRobot::ServoDriver> robot_driver_ptr_;
   std::shared_ptr<HansCuteController::Controller> controller_ptr_;
   std::shared_ptr<HansCuteStatusManager> status_manager_ptr_;
 

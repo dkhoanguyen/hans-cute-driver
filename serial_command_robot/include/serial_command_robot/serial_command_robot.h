@@ -1,5 +1,5 @@
-#ifndef _SERIAL_COMMAND_H_
-#define _SERIAL_COMMAND_H_
+#ifndef _SERIAL_COMMAND_ROBOT_H_
+#define _SERIAL_COMMAND_ROBOT_H_
 
 #include <iostream>
 #include <mutex>
@@ -15,55 +15,28 @@
 // New native serial library
 #include "serial_port/serial_port_interface.h"
 
-#include "serial_command_interface.h"
+#include "serial_command.h"
 
-struct SamplePacket
-{
-  std::vector<uint8_t> headers; // Headers in HEX
-  unsigned int id;              // Position of the id byte
-  unsigned int length;          // Position of length byte
-  unsigned int data;            // Start position of data byte
-};
-
-enum class SerialCommandError
-{
-  NO_ERROR,
-
-  OPEN_ERROR,
-  CLOSE_ERROR,
-  
-  READ_ERROR,
-  WRITE_ERROR,
-
-  NO_RESPONSE,
-  WRONG_HEADER,
-  WRONG_CHECKSUM,
-};
-
-class SerialCommandRobot : public SerialCommandInterface
+class SerialCommandRobot : public SerialCommand
 {
 public:
-  SerialCommandRobot(const unsigned int &timeout, const unsigned int &num_tries);
   SerialCommandRobot();
-  virtual ~SerialCommandRobot();
+  ~SerialCommandRobot();
 
-  virtual int open() const;
-  virtual int close() const;
+  virtual bool getJointPosition(const std::vector<unsigned int> &joint_ids,
+                                std::vector<unsigned int> &positions) = 0;
+  virtual bool setJointPosition(const std::vector<unsigned int> &joint_ids,
+                                const std::vector<unsigned int> &positions) = 0;
 
-  void setSerialPort(const std::shared_ptr<SerialPortInterface> &serial_port);
-  void setSamplePacket(const SamplePacket sample_packet);
+  virtual bool getJointSpeed(const std::vector<unsigned int> &joint_ids,
+                             std::vector<unsigned int> &speeds) = 0;
+  virtual bool setJointSpeed(const std::vector<unsigned int> &joint_ids,
+                             const std::vector<unsigned int> &speeds) = 0;
 
-  virtual int readResponse(std::vector<uint8_t> &response) override;
-  virtual int writeCommand(const std::vector<uint8_t> &command) override;
-
-  virtual uint8_t calcCheckSum(std::vector<uint8_t> &data) const = 0;
-
-protected:
-  std::shared_ptr<SerialPortInterface> serial_port_;
-  unsigned int timeout_;
-  unsigned int num_tries_;
-  SamplePacket sample_packet_;
-  std::mutex comms_mtx_;
+  virtual bool getJointAccceleration(const std::vector<unsigned int> &joint_ids,
+                                     std::vector<unsigned int> &accelerations) = 0;
+  virtual bool setJointAcceleration(const std::vector<unsigned int> &joint_ids,
+                                    const std::vector<unsigned int> &accelerations) = 0;
 };
 
 #endif

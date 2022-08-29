@@ -15,6 +15,22 @@ namespace HansCuteRobot
     ServoDriver();
     ~ServoDriver();
 
+    bool getJointPosition(const std::vector<unsigned int> &joint_ids,
+                          std::vector<unsigned int> &positions);
+
+    bool setJointPosition(const std::vector<unsigned int> &joint_ids,
+                          const std::vector<unsigned int> &positions);
+
+    bool getJointSpeed(const std::vector<unsigned int> &joint_ids,
+                       std::vector<unsigned int> &speeds);
+    bool setJointSpeed(const std::vector<unsigned int> &joint_ids,
+                       const std::vector<unsigned int> &speeds);
+
+    bool getJointAccceleration(const std::vector<unsigned int> &joint_ids,
+                               std::vector<unsigned int> &accelerations);
+    bool setJointAcceleration(const std::vector<unsigned int> &joint_ids,
+                              const std::vector<unsigned int> &accelerations);
+
     //====================================================================//
     // These function modify EEPROM data which persists after power cycle //
     //====================================================================//

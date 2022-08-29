@@ -43,7 +43,7 @@ private:
   std::vector<ServoParams> servos_params_;
   std::vector<unsigned int> joint_ids_;
 
-  std::shared_ptr<HansCuteRobot::ServoDriver> servo_driver_ptr_;
+  std::shared_ptr<HansCuteRobot::ServoDriver> robot_driver_ptr_;
 
   std::shared_ptr<std::thread> update_motor_state_thred_;
   std::shared_ptr<std::thread> diagnostic_thread_;

@@ -8,7 +8,6 @@ add_compile_options(-std=c++11)
 # # if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 # # is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  
 )
 
 add_subdirectory(serial_port)
@@ -105,15 +104,16 @@ catkin_package(
   INCLUDE_DIRS include serial_port/include
   LIBRARIES LIBRARIES ${PROJECT_NAME} serial_port
   CATKIN_DEPENDS roscpp
+
   # DEPENDS system_lib
 )
 
 # ##########
 # # Build ##
 # ##########
-
 set(${PROJECT_NAME}_SOURCES
   src/serial_command_robot.cpp
+  src/serial_command.cpp
   src/main.cpp
 )
 

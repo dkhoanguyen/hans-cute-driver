@@ -10,6 +10,7 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   hans_cute_driver
   hans_cute_status_manager
+  serial_command_robot
   roscpp
 )
 
@@ -104,7 +105,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package(
   INCLUDE_DIRS include nodes/include
   LIBRARIES ${PROJECT_NAME} 
-  CATKIN_DEPENDS hans_cute_driver hans_cute_status_manager roscpp
+  CATKIN_DEPENDS hans_cute_driver hans_cute_status_manager roscpp serial_command_robot
   # DEPENDS system_lib
 )
 
