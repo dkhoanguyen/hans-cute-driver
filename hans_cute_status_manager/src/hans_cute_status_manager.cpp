@@ -26,7 +26,7 @@ void HansCuteStatusManager::updateJointParams(const std::vector<ServoParams> &se
   {
     return;
   }
-  for (unsigned int id : joint_ids_)
+  for (unsigned int id = 0; id < servo_params.size(); id++)
   {
     servos_params_.at(id).joint_name = servo_params.at(id).joint_name;
     servos_params_.at(id).raw_min = servo_params.at(id).raw_min;

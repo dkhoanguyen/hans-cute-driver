@@ -30,11 +30,11 @@ int main(int argc, char *argv[])
     hans_robot.setPosition(i, 2048);
   }
 
-  std::this_thread::sleep_for(std::chrono::milliseconds((2500)));
-  // hans_robot.setMultiSpeed(servo_ids,speeds);
-  hans_robot.setPosition(5, 3000);
-  hans_robot.setAcceleration(5, 20);
-  hans_robot.setSpeed(5,300);
+  // std::this_thread::sleep_for(std::chrono::milliseconds((2500)));
+  // // hans_robot.setMultiSpeed(servo_ids,speeds);
+  // hans_robot.setPosition(5, 3000);
+  // hans_robot.setAcceleration(5, 20);
+  // hans_robot.setSpeed(5,300);
 
   // std::this_thread::sleep_for(std::chrono::milliseconds((2500)));
   // hans_robot.setMultiSpeed(servo_ids,speeds);

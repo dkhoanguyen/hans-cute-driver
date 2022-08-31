@@ -14,19 +14,19 @@ namespace HansCuteController
 
   void JointPositionController::initialise()
   {
-    for(unsigned int joint_id : joint_ids_)
+    for (unsigned int joint_id : joint_ids_)
     {
       unsigned int position = 0;
-      servo_driver_ptr_->getPosition(joint_id,position);
-      servo_driver_ptr_->setPosition(joint_id,position);
+      servo_driver_ptr_->getPosition(joint_id, position);
+      servo_driver_ptr_->setPosition(joint_id, position);
     }
   }
 
   void JointPositionController::start()
   {
-    for(unsigned int joint_id : joint_ids_)
+    for (unsigned int joint_id : joint_ids_)
     {
-      servo_driver_ptr_->setTorqueEnable(joint_id,true);
+      servo_driver_ptr_->setTorqueEnable(joint_id, true);
     }
   }
 
@@ -46,8 +46,11 @@ namespace HansCuteController
       unsigned int processed_pos = 2048;
       posRadToRaw(raw_positions.at(idx), processed_pos, joint_params_.at(idx));
       processed_data.push_back(processed_pos);
+
+      servo_driver_ptr_->setAcceleration((uint8_t)joint_ids_.at(idx), 20);
+      servo_driver_ptr_->setSpeed((uint8_t)joint_ids_.at(idx), 300);
+      servo_driver_ptr_->setPosition((uint8_t)joint_ids_.at(idx), processed_pos);
     }
-    servo_driver_ptr_->setMultiPosition(joint_ids_, processed_data);
   }
 
   void JointPositionController::posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params)

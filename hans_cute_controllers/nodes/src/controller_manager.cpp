@@ -4,6 +4,7 @@ HansCuteControllerManager::HansCuteControllerManager(ros::NodeHandle &nh) : nh_(
 {
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
   joint_target_sub_ = nh_.subscribe("target_joint_states", 10, &HansCuteControllerManager::jointTargetCallback, this);
+  target_joint_buff_.received = false;
 }
 
 HansCuteControllerManager::~HansCuteControllerManager()
@@ -26,7 +27,7 @@ void HansCuteControllerManager::initialise()
   {
     ROS_ERROR("No port specified.");
   }
-  if (!(nh_.getParam(node_name_.substr(1) + "/baud_rate", baud_rate)))
+  if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/baud_rate", baud_rate)))
   {
     ROS_ERROR("No baudrate specified.");
   }
@@ -52,7 +53,7 @@ void HansCuteControllerManager::initialise()
 
     // Get Joint Name first
     std::string joint_name = "joint_" + std::to_string(id);
-    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joint_params/" + joint_name + "/name", joint_name)))
+    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joints_params/" + joint_name + "/name", joint_name)))
     {
       ROS_ERROR("Unable to retrieve name from parameter server");
     }
@@ -65,19 +66,19 @@ void HansCuteControllerManager::initialise()
     int raw_max = 3243;
 
     // Joint origin and min max positions
-    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joint_params/" + joint_name + "/origin", raw_origin)))
+    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joints_params/" + joint_name + "/origin", raw_origin)))
     {
       ROS_ERROR("Unable to retrieve raw origin from parameter server");
     }
     joint_param.raw_origin = raw_origin;
 
-    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joint_params/" + joint_name + "/min", raw_min)))
+    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joints_params/" + joint_name + "/min", raw_min)))
     {
       ROS_ERROR("Unable to retrieve raw min angle from parameter server");
     }
     joint_param.raw_min = raw_min;
 
-    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joint_params/" + joint_name + "/max", raw_max)))
+    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joints_params/" + joint_name + "/max", raw_max)))
     {
       ROS_ERROR("Unable to retrieve raw max angle from parameter server");
     }
@@ -87,17 +88,17 @@ void HansCuteControllerManager::initialise()
     int speed = 300;
     int acceleration = 20;
 
-    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joint_params/" + joint_name + "/speed", speed)))
+    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joints_params/" + joint_name + "/speed", speed)))
     {
       ROS_ERROR("Unable to retrieve speed from parameter server");
     }
-    joint_param.raw_origin = raw_origin;
+    joint_param.speed = speed;
 
-    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joint_params/" + joint_name + "/acceleration", acceleration)))
+    if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joints_params/" + joint_name + "/acceleration", acceleration)))
     {
       ROS_ERROR("Unable to retrieve acceleration from parameter server");
     }
-    joint_param.raw_origin = raw_origin;
+    joint_param.acceleration = acceleration;
     joint_params.push_back(joint_param);
   }
 
@@ -151,8 +152,9 @@ void HansCuteControllerManager::jointTargetCallback(const trajectory_msgs::Joint
 void HansCuteControllerManager::controlThread()
 {
   ROS_INFO("HansCuteControllerManager: Control thread started.");
-  while (ros::ok() && running_)
+  while (ros::ok())
   {
+    // std::cout << "Controller Started" << std::endl;
     if (target_joint_buff_.received)
     {
       HansCuteController::Data joint_pos_data;
