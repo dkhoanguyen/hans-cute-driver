@@ -1,6 +1,6 @@
 #include "hans_cute_driver/hans_cute_serial.h"
 
-HansCuteRobot::ServoSerialComms::ServoSerialComms() : SerialCommandRobot()
+HansCuteRobot::ServoSerialComms::ServoSerialComms() : SerialCommand()
 {
 }
 

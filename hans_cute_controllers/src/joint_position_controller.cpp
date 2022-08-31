@@ -2,9 +2,9 @@
 
 namespace HansCuteController
 {
-  JointPositionController::JointPositionController(const std::shared_ptr<HansCuteRobot::ServoDriver> &servo_driver_ptr,
+  JointPositionController::JointPositionController(const std::shared_ptr<SerialCommandRobotInterface> &robot_driver_ptr,
                                                    const std::string &controller_namespace, const std::string &port_namespace)
-      : Controller(servo_driver_ptr, controller_namespace, port_namespace)
+      : Controller(robot_driver_ptr, controller_namespace, port_namespace)
   {
   }
 
@@ -14,14 +14,16 @@ namespace HansCuteController
 
   void JointPositionController::initialise()
   {
-    
+    std::vector<unsigned int> positions;
+    robot_driver_ptr_->getJointPosition(positions);
+    robot_driver_ptr_->setJointPosition(positions);
   }
 
   void JointPositionController::start()
   {
-    for(unsigned int joint_id : joint_ids_)
+    for (unsigned int joint_id : joint_ids_)
     {
-      // robot_driver_ptr_->setTorqueEnable(joint_id,true);
+      // robot_driver_ptr_->setTorqueEnable(joint_id, true);
     }
   }
 
@@ -32,21 +34,27 @@ namespace HansCuteController
   void JointPositionController::processCommand(Data &data)
   {
     // First maybe convert the data
-    std::vector<double> raw_positions;
-    data.get(raw_positions);
+    // std::vector<double> raw_positions;
+    // data.get(raw_positions);
 
-    std::vector<unsigned int> processed_data;
-    for (unsigned int idx = 0; idx < raw_positions.size(); idx++)
-    {
-      unsigned int processed_pos = 2048;
-      posRadToRaw(raw_positions.at(idx), processed_pos, joint_params_.at(idx));
-      processed_data.push_back(processed_pos);
-    }
-    robot_driver_ptr_->setJointPosition(joint_ids_, processed_data);
+    // std::vector<unsigned int> processed_data;
+    // std::vector<unsigned int> speeds;
+    // std::vector<unsigned int> accelerations;
+    // for (unsigned int idx = 0; idx < raw_positions.size(); idx++)
+    // {
+    //   unsigned int processed_pos = 2048;
+    //   posRadToRaw(raw_positions.at(idx), processed_pos, joint_params_.at(idx));
+    //   processed_data.push_back(processed_pos);
+    //   speeds.push_back(300);
+    //   accelerations.push_back(30);
+    // }
+    // robot_driver_ptr_->setJointSpeed(speeds);
+    // robot_driver_ptr_->setJointAcceleration(accelerations);
+    // robot_driver_ptr_->setJointPosition(processed_data);
   }
 
-  void JointPositionController::posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params)
-  {
-    raw = (unsigned int)round(params.raw_origin + (rad * params.enc_tick_per_rad));
-  }
+  // void JointPositionController::posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params)
+  // {
+  //   raw = (unsigned int)round(params.raw_origin + (rad * params.enc_tick_per_rad));
+  // }
 }

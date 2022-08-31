@@ -13,10 +13,11 @@
 #include "serial_port/custom_serial_port.h"
 #include "serial_port/serial_port_interface.h"
 
+#include "serial_command_robot/serial_command_robot_interface.h"
+
 #include "hans_cute_controllers/controller.h"
-#include "hans_cute_status_manager/hans_cute_status_manager.h"
 #include "hans_cute_controllers/joint_position_controller.h"
-#include "hans_cute_driver/hans_cute_driver.h"
+#include "hans_cute_driver/hans_cute_robot.h"
 
 struct JointStateDataBuffer
 {
@@ -61,9 +62,8 @@ private:
   std::unique_ptr<std::thread> control_thread_;
 
   std::shared_ptr<SerialPortInterface> serial_port_ptr_;
-  std::shared_ptr<HansCuteRobot::ServoDriver> robot_driver_ptr_;
+  std::shared_ptr<SerialCommandRobotInterface> robot_driver_ptr_;
   std::shared_ptr<HansCuteController::Controller> controller_ptr_;
-  std::shared_ptr<HansCuteStatusManager> status_manager_ptr_;
 
   JointStateDataBuffer joint_state_buff_;
   JointTrajectoryDataBuffer target_joint_buff_;

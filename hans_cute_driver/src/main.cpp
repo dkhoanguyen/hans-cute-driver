@@ -14,9 +14,6 @@ int main(int argc, char *argv[])
   hans_robot.open();
 
   std::vector<unsigned int> servo_ids;
-  // std::vector<unsigned int> positions;
-  // std::vector<unsigned int> speeds;
-
   for (int i = 0; i <= 6; i++)
   {
     servo_ids.push_back(i);
@@ -29,17 +26,6 @@ int main(int argc, char *argv[])
     hans_robot.setPosition(i, position);
     hans_robot.setPosition(i, 2048);
   }
-
-  std::this_thread::sleep_for(std::chrono::milliseconds((2500)));
-  // hans_robot.setMultiSpeed(servo_ids,speeds);
-  hans_robot.setPosition(5, 3000);
-  hans_robot.setAcceleration(5, 20);
-  hans_robot.setSpeed(5,300);
-
-  // std::this_thread::sleep_for(std::chrono::milliseconds((2500)));
-  // hans_robot.setMultiSpeed(servo_ids,speeds);
-  // hans_robot.setPosition(5, 900);
-
   hans_robot.close();
   return 0;
 }

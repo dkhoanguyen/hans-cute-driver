@@ -115,6 +115,7 @@ catkin_package(
 set(${PROJECT_NAME}_SOURCES
   src/hans_cute_serial.cpp
   src/hans_cute_driver.cpp
+  src/hans_cute_robot.cpp
   src/main.cpp
 )
 

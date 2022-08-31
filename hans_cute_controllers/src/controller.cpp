@@ -2,9 +2,9 @@
 
 namespace HansCuteController
 {
-  Controller::Controller(const std::shared_ptr<SerialCommandRobot> &servo_driver_ptr,
+  Controller::Controller(const std::shared_ptr<SerialCommandRobotInterface> &robot_driver_ptr,
                          const std::string &controller_namespace, const std::string &port_namespace)
-      : robot_driver_ptr_(servo_driver_ptr),
+      : robot_driver_ptr_(robot_driver_ptr),
         controller_namespace_(controller_namespace),
         port_namespace_(port_namespace),
         running_(false),
@@ -15,11 +15,7 @@ namespace HansCuteController
         compliance_punches_(std::vector<unsigned int>()),
         torque_limits_(std::vector<double>())
   {
-    // For now, assume that the ids range from 0 to 6 - hardcoded
-    for (unsigned int motor_id = 0; motor_id < 6; motor_id++)
-    {
-      joint_ids_.push_back(motor_id);
-    }
+    
   }
 
   Controller::~Controller()
@@ -44,10 +40,10 @@ namespace HansCuteController
     joint_ids_ = joint_ids;
   }
 
-  void Controller::setServoParams(const std::vector<ServoParams> &servo_params)
-  {
-    joint_params_ = servo_params;
-  }
+  // void Controller::setServoParams(const std::vector<ServoParams> &servo_params)
+  // {
+  //   joint_params_ = servo_params;
+  // }
 
   void Controller::setJointNames(const std::vector<std::string> &joint_names)
   {
@@ -56,6 +52,6 @@ namespace HansCuteController
   void Controller::setJointSpeeds(const std::vector<unsigned int> &joint_speeds)
   {
     joint_speeds_ = joint_speeds;
-    robot_driver_ptr_->setJointSpeed(joint_ids_, joint_speeds_);
+    robot_driver_ptr_->setJointSpeed(joint_speeds_);
   }
 } // namespace HansCuteController

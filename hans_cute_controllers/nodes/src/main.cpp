@@ -17,7 +17,7 @@ int main(int argc, char **argv)
 
   spinner.start();
   ros::Rate rate(10);
-  while (ros::ok)
+  while (ros::ok())
   {
     rate.sleep();
   }

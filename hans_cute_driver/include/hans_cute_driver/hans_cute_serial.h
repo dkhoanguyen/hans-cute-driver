@@ -1,12 +1,12 @@
 #ifndef _HANS_CUTE_SERIAL_H_
 #define _HANS_CUTE_SERIAL_H_
 
-#include "serial_command_robot/serial_command_robot.h"
+#include "serial_command_robot/serial_command.h"
 #include "hans_cute_const.h"
 
 namespace HansCuteRobot
 {
-  class ServoSerialComms : public SerialCommandRobot
+  class ServoSerialComms : public SerialCommand
   {
   public:
     ServoSerialComms();
