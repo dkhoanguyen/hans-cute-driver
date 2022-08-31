@@ -11,6 +11,9 @@ namespace HansCuteRobot
   class HansCuteRobot : public SerialCommandRobotInterface
   {
   public:
+    static const unsigned int SERVO_DEFAULT_SPEED = 400;
+    static const unsigned int SERVO_DEFAULT_ACCELERATION = 40;
+
     HansCuteRobot(const std::string &port_name, const std::string &port_namespace, const long &baud_rate,
                   const unsigned int &min_motor_id = 0, const unsigned int &max_motor_id = 7);
     ~HansCuteRobot();
@@ -19,8 +22,10 @@ namespace HansCuteRobot
     bool start();
     bool stop();
 
-    bool getJointPosition(std::vector<unsigned int> &positions);
-    bool setJointPosition(const std::vector<unsigned int> &positions);
+    void updateJointParams(const std::vector<ServoParams> &servo_params);
+
+    bool getJointPosition(std::vector<double> &positions);
+    bool setJointPosition(const std::vector<double> &positions);
 
     bool getJointSpeed(std::vector<unsigned int> &speeds);
     bool setJointSpeed(const std::vector<unsigned int> &speeds);
@@ -31,6 +36,9 @@ namespace HansCuteRobot
   private:
     bool findServos();
     bool fillServoParams(const unsigned int &servo_id, const unsigned int &model_number);
+
+    void posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params);
+    void posRawToRad(double &rad, const unsigned int &raw, const ServoParams &params);
 
     std::string port_name_;
     std::string port_namespace_;

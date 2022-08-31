@@ -33,19 +33,14 @@ void HansCuteControllerManager::initialise()
   }
 
   std::string port_namespace = port.substr(5); // Remove /dev/ from port name
-  serial_port_ptr_ = std::make_shared<SerialPort>(port, baud_rate, 50);
-  // Shared pointer for hardware driver
-  robot_driver_ptr_ = std::make_shared<HansCuteRobot::HansCuteRobot>(port,port_namespace,baud_rate);
-  robot_driver_ptr_->setSerialPort(serial_port_ptr_);
-  robot_driver_ptr_->initialise();
 
   // Joint Params
   std::vector<std::string> joint_names;
-  // std::vector<ServoParams> joint_params;
+  std::vector<HansCuteRobot::ServoParams> joint_params;
   for (unsigned int id = 0; id < 6; id++)
   {
     // Params
-    // ServoParams joint_param;
+    HansCuteRobot::ServoParams joint_param;
 
     // Get Joint Name first
     std::string joint_name = "joint_" + std::to_string(id);
@@ -54,7 +49,7 @@ void HansCuteControllerManager::initialise()
       ROS_ERROR("Unable to retrieve name from parameter server");
     }
     joint_names.push_back(joint_name);
-    // joint_param.joint_name = joint_name;
+    joint_param.joint_name = joint_name;
 
     // Get other joint params
     int raw_origin = 2048;
@@ -66,19 +61,19 @@ void HansCuteControllerManager::initialise()
     {
       ROS_ERROR("Unable to retrieve raw origin from parameter server");
     }
-    // joint_param.raw_origin = raw_origin;
+    joint_param.raw_origin = raw_origin;
 
     if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joints_params/" + joint_name + "/min", raw_min)))
     {
       ROS_ERROR("Unable to retrieve raw min angle from parameter server");
     }
-    // joint_param.raw_min = raw_min;
+    joint_param.raw_min = raw_min;
 
     if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joints_params/" + joint_name + "/max", raw_max)))
     {
       ROS_ERROR("Unable to retrieve raw max angle from parameter server");
     }
-    // joint_param.raw_max = raw_max;
+    joint_param.raw_max = raw_max;
 
     // Joint speed and accelaration
     int speed = 300;
@@ -88,25 +83,32 @@ void HansCuteControllerManager::initialise()
     {
       ROS_ERROR("Unable to retrieve speed from parameter server");
     }
-    // joint_param.speed = speed;
+    joint_param.speed = speed;
 
     if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/joints_params/" + joint_name + "/acceleration", acceleration)))
     {
       ROS_ERROR("Unable to retrieve acceleration from parameter server");
     }
-    // joint_param.acceleration = acceleration;
-    // joint_params.push_back(joint_param);
+    joint_param.acceleration = acceleration;
+    joint_params.push_back(joint_param);
   }
 
-  // Update user defined parameters with robot hardware
-  // status_manager_ptr_->updateJointParams(joint_params);
+  serial_port_ptr_ = std::make_shared<SerialPort>(port, baud_rate, 50);
+  // Shared pointer for hardware driver
+  std::shared_ptr<HansCuteRobot::HansCuteRobot> robot_driver = std::make_shared<HansCuteRobot::HansCuteRobot>(port,port_namespace,baud_rate);
+  robot_driver->setSerialPort(serial_port_ptr_);
+  robot_driver->initialise();
+  robot_driver->updateJointParams(joint_params);
 
-  // // Controller
-  // controller_ptr_ = std::make_shared<HansCuteController::JointPositionController>(robot_driver_ptr_,
-  //                                                                                 node_namespace_,
-  //                                                                                 port_namespace);
+  // Once we are done with all of the setup and initialisation, hand over the driver to the controller manager
+  robot_driver_ptr_ = robot_driver;
 
-  // controller_ptr_->setJointNames(joint_names);
+  // Controller
+  controller_ptr_ = std::make_shared<HansCuteController::JointPositionController>(robot_driver_ptr_,
+                                                                                  node_namespace_,
+                                                                                  port_namespace);
+
+  controller_ptr_->setJointNames(joint_names);
 
   // // Joint IDS
   // std::vector<unsigned int> joint_ids;
@@ -150,15 +152,14 @@ void HansCuteControllerManager::controlThread()
   ROS_INFO("HansCuteControllerManager: Control thread started.");
   while (ros::ok())
   {
-    // std::cout << "Controller Started" << std::endl;
-    // if (target_joint_buff_.received)
-    // {
-    //   HansCuteController::Data joint_pos_data;
-    //   std::unique_lock<std::mutex> lck(target_joint_buff_.mtx);
-    //   joint_pos_data.set(target_joint_buff_.data_deq.back().points.at(0).positions);
-    //   controller_ptr_->processCommand(joint_pos_data);
-    //   target_joint_buff_.received = false;
-    // }
+    if (target_joint_buff_.received)
+    {
+      HansCuteController::Data joint_pos_data;
+      std::unique_lock<std::mutex> lck(target_joint_buff_.mtx);
+      joint_pos_data.set(target_joint_buff_.data_deq.back().points.at(0).positions);
+      controller_ptr_->processCommand(joint_pos_data);
+      target_joint_buff_.received = false;
+    }
     rate_.sleep();
   }
 }

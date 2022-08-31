@@ -9,6 +9,11 @@
 
 #include "serial_command_robot/serial_command.h"
 
+struct RobotParamsInterface
+{
+  
+};
+
 class SerialCommandRobotInterface
 {
 public:
@@ -21,8 +26,8 @@ public:
 
   void setSerialPort(const std::shared_ptr<SerialPortInterface> &serial_port);
 
-  virtual bool getJointPosition(std::vector<unsigned int> &positions) = 0;
-  virtual bool setJointPosition(const std::vector<unsigned int> &positions) = 0;
+  virtual bool getJointPosition(std::vector<double> &positions) = 0;
+  virtual bool setJointPosition(const std::vector<double> &positions) = 0;
 
   virtual bool getJointSpeed(std::vector<unsigned int> &speeds) = 0;
   virtual bool setJointSpeed(const std::vector<unsigned int> &speeds) = 0;

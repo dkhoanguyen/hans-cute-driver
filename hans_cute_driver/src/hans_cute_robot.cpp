@@ -20,11 +20,22 @@ HansCuteRobot::HansCuteRobot::~HansCuteRobot()
 bool HansCuteRobot::HansCuteRobot::initialise()
 {
   findServos();
+
+  // Set Speed and Acceleration
+  for (unsigned int id = 0; id < joint_ids_.size(); id++)
+  {
+    robot_driver_ptr_->setAcceleration(joint_ids_.at(id), servos_params_.at(id).acceleration);
+    robot_driver_ptr_->setSpeed(joint_ids_.at(id), servos_params_.at(id).speed);
+  }
 }
 
 bool HansCuteRobot::HansCuteRobot::start()
 {
   running_ = true;
+  for (const unsigned int id : joint_ids_)
+  {
+    robot_driver_ptr_->setTorqueEnable(id, true);
+  }
 }
 
 bool HansCuteRobot::HansCuteRobot::stop()
@@ -32,23 +43,53 @@ bool HansCuteRobot::HansCuteRobot::stop()
   running_ = false;
 }
 
-bool HansCuteRobot::HansCuteRobot::getJointPosition(std::vector<unsigned int> &positions)
+void HansCuteRobot::HansCuteRobot::updateJointParams(const std::vector<ServoParams> &servo_params)
+{
+  if (!servo_found_)
+  {
+    return;
+  }
+  for (unsigned int id = 0; id < servo_params.size(); id++)
+  {
+    servos_params_.at(id).joint_name = servo_params.at(id).joint_name;
+    servos_params_.at(id).raw_min = servo_params.at(id).raw_min;
+    servos_params_.at(id).raw_max = servo_params.at(id).raw_max;
+    servos_params_.at(id).raw_origin = servo_params.at(id).raw_origin;
+
+    servos_params_.at(id).speed = servo_params.at(id).speed;
+    servos_params_.at(id).acceleration = servo_params.at(id).acceleration;
+
+    // Update hardware with new values
+    robot_driver_ptr_->setAngleLimits(joint_ids_.at(id), servos_params_.at(id).raw_min, servos_params_.at(id).raw_max);
+    robot_driver_ptr_->setSpeed(joint_ids_.at(id), servos_params_.at(id).speed);
+    robot_driver_ptr_->setAcceleration(joint_ids_.at(id), servos_params_.at(id).acceleration);
+  }
+}
+
+bool HansCuteRobot::HansCuteRobot::getJointPosition(std::vector<double> &positions)
 {
   positions.clear();
-  for (const unsigned int id : joint_ids_)
+  for (unsigned int idx = 0; idx < joint_ids_.size(); idx++)
   {
-    unsigned int position = 0;
-    robot_driver_ptr_->getPosition(id, position);
+    // Obtain the raw position
+    unsigned int raw_position = 0;
+    robot_driver_ptr_->getPosition(joint_ids_.at(idx), raw_position);
+
+    // Convert raw position to radian
+    double position = 0.0;
+    posRawToRad(position,raw_position,servos_params_.at(idx));
     positions.push_back(position);
   }
   return true;
 }
 
-bool HansCuteRobot::HansCuteRobot::setJointPosition(const std::vector<unsigned int> &positions)
+bool HansCuteRobot::HansCuteRobot::setJointPosition(const std::vector<double> &positions)
 {
-  for (const unsigned int id : joint_ids_)
+  for (unsigned int idx = 0; idx < joint_ids_.size(); idx++)
   {
-    robot_driver_ptr_->setPosition(joint_ids_.at(id), positions.at(id));
+    unsigned int processed_pos = 2048;
+    posRadToRaw(positions.at(idx), processed_pos, servos_params_.at(idx));
+    robot_driver_ptr_->setPosition(joint_ids_.at(idx), positions.at(idx));
   }
   return true;
 }
@@ -180,6 +221,19 @@ bool HansCuteRobot::HansCuteRobot::fillServoParams(const unsigned int &servo_id,
   servo_param.rad_per_enc_tick = rad_per_enc_tick;
   servo_param.enc_tick_per_rad = enc_tick_per_rad;
 
+  servo_param.speed = SERVO_DEFAULT_SPEED;
+  servo_param.acceleration = SERVO_DEFAULT_ACCELERATION;
+
   servos_params_.push_back(servo_param);
   return true;
+}
+
+void HansCuteRobot::HansCuteRobot::posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params)
+{
+  raw = (unsigned int)round(params.raw_origin + (rad * params.enc_tick_per_rad));
+}
+
+void HansCuteRobot::HansCuteRobot::posRawToRad(double &rad, const unsigned int &raw, const ServoParams &params)
+{
+  rad = (raw - params.raw_origin) * params.rad_per_enc_tick;
 }
