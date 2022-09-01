@@ -37,7 +37,7 @@
 #include <asm/ioctls.h>
 #include <asm/termbits.h>
 
-#include "custom_serial_port/serial_port_interface.h"
+#include "serial_port_interface.h"
 
 enum class NumDataBits
 {
@@ -58,6 +58,12 @@ enum class NumStopBits
 {
   ONE,
   TWO,
+};
+
+enum class SerialError
+{
+  WRITE_ERROR,
+  READ_ERROR,
 };
 
 class SerialPort : public SerialPortInterface

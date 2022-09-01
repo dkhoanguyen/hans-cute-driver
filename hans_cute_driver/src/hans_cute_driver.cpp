@@ -11,7 +11,7 @@ HansCuteRobot::ServoDriver::ServoDriver()
 
 HansCuteRobot::ServoDriver::~ServoDriver()
 {
-  // std::cout << "ServoDriver destructor" << std::endl;
+  
 }
 
 //====================================================================//
@@ -53,10 +53,6 @@ bool HansCuteRobot::ServoDriver::setMaxTorque(const uint8_t &servo_id, const uns
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
   write(servo_id, (uint8_t)ControlTableConstant::MAX_TORQUE_L, raw_limit, returned_data, timestamp);
-  for (uint8_t data : returned_data)
-  {
-    std::cout << (int)data << std::endl;
-  }
   return true;
 }
 
@@ -158,34 +154,12 @@ bool HansCuteRobot::ServoDriver::setMultiComplianceSlope()
 bool HansCuteRobot::ServoDriver::setMultiPosition(const std::vector<unsigned int> &servo_ids,
                                                   const std::vector<unsigned int> &positions)
 {
-  // Prepare data for sync_write
-  std::vector<std::vector<uint8_t>> data_lists;
-  for (int indx = 0; indx < servo_ids.size(); indx++)
-  {
-    std::vector<uint8_t> data;
-    data.push_back((uint8_t)servo_ids.at(indx));
-    std::vector<uint8_t> position = HansCuteRobot::ServoPosition::getRawData(positions.at(indx));
-    data.insert(data.end(), position.begin(), position.end());
-    data_lists.push_back(data);
-  }
-  syncWrite((uint8_t)ControlTableConstant::GOAL_POSITION_L, data_lists);
-  return true;
+  
 }
 bool HansCuteRobot::ServoDriver::setMultiSpeed(const std::vector<unsigned int> &servo_ids,
                                                const std::vector<unsigned int> &speeds)
 {
-  // Prepare data for sync_write
-  std::vector<std::vector<uint8_t>> data_lists;
-  for (int indx = 0; indx < servo_ids.size(); indx++)
-  {
-    std::vector<uint8_t> data;
-    data.push_back((uint8_t)servo_ids.at(indx));
-    std::vector<uint8_t> speed = HansCuteRobot::ServoSpeed::getRawData(speeds.at(indx));
-    data.insert(data.end(), speed.begin(), speed.end());
-    data_lists.push_back(data);
-  }
-  syncWrite((uint8_t)ControlTableConstant::GOAL_SPEED_L, data_lists);
-  return true;
+  
 }
 
 bool HansCuteRobot::ServoDriver::setMultiTorqueLimit(const std::vector<unsigned int> &servo_ids,
@@ -295,6 +269,11 @@ bool HansCuteRobot::ServoDriver::getSpeed(const int &servo_id, unsigned int &spe
     return false;
   }
   speed = (unsigned int)HansCuteRobot::ServoSpeed::getData(response);
+  return true;
+}
+
+bool HansCuteRobot::ServoDriver::getAcceleration(const int &servo_id, unsigned int &acceleration)
+{
   return true;
 }
 

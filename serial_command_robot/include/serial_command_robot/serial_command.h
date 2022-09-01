@@ -13,7 +13,7 @@
 #include <csignal>
 
 // New native serial library
-#include "custom_serial_port/serial_port_interface.h"
+#include "serial_port/serial_port_interface.h"
 
 #include "serial_command_interface.h"
 
@@ -25,30 +25,46 @@ struct SamplePacket
   unsigned int data;            // Start position of data byte
 };
 
-enum class SerialError
+enum class SerialCommandError
 {
-  NO_RESPONSE = 0,
-  WRONG_HEADER = 1,
-  WRONG_CHECKSUM = 2,
+  NO_ERROR,
+
+  OPEN_ERROR,
+  CLOSE_ERROR,
+  
+  READ_ERROR,
+  WRITE_ERROR,
+
+  NO_RESPONSE,
+  WRONG_HEADER,
+  WRONG_CHECKSUM,
 };
 
 class SerialCommand : public SerialCommandInterface
 {
-public:
+  public:
   SerialCommand(const unsigned int &timeout, const unsigned int &num_tries);
   SerialCommand();
   virtual ~SerialCommand();
 
-  virtual void open() const;
-  virtual void close() const;
+  virtual int open() const;
+  virtual int close() const;
 
   void setSerialPort(const std::shared_ptr<SerialPortInterface> &serial_port);
   void setSamplePacket(const SamplePacket sample_packet);
 
-  virtual bool readResponse(std::vector<uint8_t> &response) override;
-  virtual bool writeCommand(const std::vector<uint8_t> &command) override;
+  virtual int readResponse(std::vector<uint8_t> &response) override;
+  virtual int writeCommand(const std::vector<uint8_t> &command) override;
 
   virtual uint8_t calcCheckSum(std::vector<uint8_t> &data) const = 0;
+
+  static void packFromFloats(const std::vector<float> &value_to_pack, std::vector<uint8_t> &packed_doubles);
+  static void packFromDoubles(const std::vector<double> &value_to_pack, std::vector<uint8_t> &packed_doubles);
+
+  static void unpackFloats(const std::vector<uint8_t>::iterator &it, float &output);
+
+  static void floatToByte(float float_variable, uint8_t temp_bytes[]);
+  static void doubleToByte(double double_variable, uint8_t temp_bytes[]);
 
 protected:
   std::shared_ptr<SerialPortInterface> serial_port_;

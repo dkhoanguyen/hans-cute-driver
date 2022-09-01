@@ -9,16 +9,6 @@ HansCuteRobot::ServoSerialComms::~ServoSerialComms()
   // std::cout << "ServoSerialComms Destructor" << std::endl;
 }
 
-bool HansCuteRobot::ServoSerialComms::readResponse(std::vector<uint8_t> &response)
-{
-  return SerialCommand::readResponse(response);
-}
-
-bool HansCuteRobot::ServoSerialComms::writeCommand(const std::vector<uint8_t> &command)
-{
-  return SerialCommand::writeCommand(command);
-}
-
 uint8_t HansCuteRobot::ServoSerialComms::calcCheckSum(std::vector<uint8_t> &data) const
 {
   unsigned int checksum = 0;
@@ -53,7 +43,12 @@ bool HansCuteRobot::ServoSerialComms::read(const uint8_t &id, const uint8_t &add
     return false;
   }
   // Read response ans return data
-  return readResponse(returned_data);
+  int status = readResponse(returned_data);
+  if(status != 0)
+  {
+    return false;
+  }
+  return true;
 }
 
 bool HansCuteRobot::ServoSerialComms::write(const uint8_t &id, const uint8_t &address, const std::vector<uint8_t> &data,
@@ -83,7 +78,12 @@ bool HansCuteRobot::ServoSerialComms::write(const uint8_t &id, const uint8_t &ad
     return false;
   }
   // Read response ans return data
-  return readResponse(returned_data);
+  int status = readResponse(returned_data);
+  if(status != 0)
+  {
+    return false;
+  }
+  return true;
 }
 
 bool HansCuteRobot::ServoSerialComms::syncWrite(const uint8_t &address, const std::vector<std::vector<uint8_t>> &data)
@@ -116,7 +116,12 @@ bool HansCuteRobot::ServoSerialComms::syncWrite(const uint8_t &address, const st
   }
   // Read response ans return data
   std::vector<uint8_t> returned_data;
-  return readResponse(returned_data);
+  int status = readResponse(returned_data);
+  if(status != 0)
+  {
+    return false;
+  }
+  return true;
 }
 
 bool HansCuteRobot::ServoSerialComms::ping(const uint8_t &id, std::vector<uint8_t> &returned_data)
@@ -137,7 +142,8 @@ bool HansCuteRobot::ServoSerialComms::ping(const uint8_t &id, std::vector<uint8_
     return false;
   }
   // Read response ans return data
-  if (!readResponse(returned_data))
+  int status = readResponse(returned_data);
+  if(status != 0)
   {
     return false;
   }
