@@ -58,10 +58,13 @@ private:
 
 private:
   void controlThread();
+  void stateMonitorThread();
+
+  std::vector<std::string> joint_names_;
 
   std::unique_ptr<std::thread> control_thread_;
+  std::unique_ptr<std::thread> state_monitor_thread_;
 
-  std::shared_ptr<SerialPortInterface> serial_port_ptr_;
   std::shared_ptr<SerialCommandRobotInterface> robot_driver_ptr_;
   std::shared_ptr<HansCuteController::Controller> controller_ptr_;
 

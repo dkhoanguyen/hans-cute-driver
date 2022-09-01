@@ -34,6 +34,7 @@ namespace HansCuteRobot
     double velocity_per_volt;
     double max_velocity;
     double radians_second_per_encoder_tick;
+    double rpm_per_tick;
 
     double encoder_resolution;
     double range_radian;

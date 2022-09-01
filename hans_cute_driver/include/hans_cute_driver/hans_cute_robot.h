@@ -15,23 +15,35 @@ namespace HansCuteRobot
     static const unsigned int SERVO_DEFAULT_ACCELERATION = 40;
 
     HansCuteRobot(const std::string &port_name, const std::string &port_namespace, const long &baud_rate,
-                  const unsigned int &min_motor_id = 0, const unsigned int &max_motor_id = 7);
+                  const unsigned int &min_motor_id = 0, const unsigned int &max_motor_id = 6);
     ~HansCuteRobot();
 
     bool initialise();
     bool start();
     bool stop();
 
+    void setSerialPort(const std::shared_ptr<SerialPortInterface> &serial_port);
     void updateJointParams(const std::vector<ServoParams> &servo_params);
 
-    bool getJointPosition(std::vector<double> &positions);
+    // Functions for using with controllers
+    // For Position Control
     bool setJointPosition(const std::vector<double> &positions);
+    bool getJointPosition(std::vector<double> &positions);
 
-    bool getJointSpeed(std::vector<unsigned int> &speeds);
-    bool setJointSpeed(const std::vector<unsigned int> &speeds);
+    // For Velocity Control
+    bool setJointVelocity(const std::vector<double> &velocities);
+    bool getJointVelocity(std::vector<double> &velocities);
 
-    bool getJointAccceleration(std::vector<unsigned int> &accelerations);
-    bool setJointAcceleration(const std::vector<unsigned int> &accelerations);
+    // For Effort Control
+    bool setJointEffort(const std::vector<double> &efforts);
+    bool getJointEffort(std::vector<double> &efforts);
+
+    // Others
+    bool getJointRawSpeed(std::vector<unsigned int> &speeds);
+    bool setJointRawSpeed(const std::vector<unsigned int> &speeds);
+
+    bool getJointRawAccceleration(std::vector<unsigned int> &accelerations);
+    bool setJointRawAcceleration(const std::vector<unsigned int> &accelerations);
 
   private:
     bool findServos();
@@ -39,6 +51,9 @@ namespace HansCuteRobot
 
     void posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params);
     void posRawToRad(double &rad, const unsigned int &raw, const ServoParams &params);
+
+    void spdRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params);
+    void spdRawToRad(double &rad, const unsigned int &raw, const ServoParams &params);
 
     std::string port_name_;
     std::string port_namespace_;

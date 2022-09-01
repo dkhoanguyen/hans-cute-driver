@@ -52,6 +52,5 @@ namespace HansCuteController
   void Controller::setJointSpeeds(const std::vector<unsigned int> &joint_speeds)
   {
     joint_speeds_ = joint_speeds;
-    robot_driver_ptr_->setJointSpeed(joint_speeds_);
   }
 } // namespace HansCuteController

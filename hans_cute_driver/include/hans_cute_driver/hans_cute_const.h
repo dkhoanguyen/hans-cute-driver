@@ -128,8 +128,8 @@ enum class UtilsParameter
   MAX_TORQUE_TICK = 1023,  // maximum torque in encoder units
 };
 
-#define KGCM_TO_NM 0.0980665       // 1 kg-cm is that many N-m
-#define RPM_TO_RADSEC 0.104719755  // 1 RPM is that many rad/sec
+constexpr double KGCM_TO_NM  = 0.0980665;       // 1 kg-cm is that many N-m
+constexpr double RPM_TO_RADSEC = 0.104719755;  // 1 RPM is that many rad/sec
 
 // Servo model
 struct ServoModel

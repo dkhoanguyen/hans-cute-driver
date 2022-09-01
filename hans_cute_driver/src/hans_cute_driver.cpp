@@ -53,10 +53,6 @@ bool HansCuteRobot::ServoDriver::setMaxTorque(const uint8_t &servo_id, const uns
   std::vector<uint8_t> returned_data;
   unsigned long timestamp;
   write(servo_id, (uint8_t)ControlTableConstant::MAX_TORQUE_L, raw_limit, returned_data, timestamp);
-  for (uint8_t data : returned_data)
-  {
-    std::cout << (int)data << std::endl;
-  }
   return true;
 }
 

@@ -35,9 +35,23 @@ void HansCuteControllerManager::initialise()
   std::string port_namespace = port.substr(5); // Remove /dev/ from port name
 
   // Joint Params
-  std::vector<std::string> joint_names;
   std::vector<HansCuteRobot::ServoParams> joint_params;
-  for (unsigned int id = 0; id < 6; id++)
+
+  // Start Joint ID
+  int start_joint_id = 0;
+  if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/start_joint_id", start_joint_id)))
+  {
+    ROS_ERROR("No start_joint_id specified.");
+  }
+
+  // End joint ID
+  int end_joint_id = 6;
+  if (!(nh_.getParam(node_name_.substr(1) + "/robot_hardware/end_joint_id", end_joint_id)))
+  {
+    ROS_ERROR("No start_joint_id specified.");
+  }
+
+  for (unsigned int id = start_joint_id; id <= end_joint_id; id++)
   {
     // Params
     HansCuteRobot::ServoParams joint_param;
@@ -48,7 +62,7 @@ void HansCuteControllerManager::initialise()
     {
       ROS_ERROR("Unable to retrieve name from parameter server");
     }
-    joint_names.push_back(joint_name);
+    joint_names_.push_back(joint_name);
     joint_param.joint_name = joint_name;
 
     // Get other joint params
@@ -93,10 +107,11 @@ void HansCuteControllerManager::initialise()
     joint_params.push_back(joint_param);
   }
 
-  serial_port_ptr_ = std::make_shared<SerialPort>(port, baud_rate, 50);
+  std::shared_ptr<SerialPortInterface> serial_port_ptr = std::make_shared<SerialPort>(port, baud_rate, 50);
+  serial_port_ptr->openPort();
   // Shared pointer for hardware driver
   std::shared_ptr<HansCuteRobot::HansCuteRobot> robot_driver = std::make_shared<HansCuteRobot::HansCuteRobot>(port,port_namespace,baud_rate);
-  robot_driver->setSerialPort(serial_port_ptr_);
+  robot_driver->setSerialPort(serial_port_ptr);
   robot_driver->initialise();
   robot_driver->updateJointParams(joint_params);
 
@@ -108,26 +123,19 @@ void HansCuteControllerManager::initialise()
                                                                                   node_namespace_,
                                                                                   port_namespace);
 
-  controller_ptr_->setJointNames(joint_names);
-
-  // // Joint IDS
-  // std::vector<unsigned int> joint_ids;
-  // status_manager_ptr_->getJointIds(joint_ids);
-  // controller_ptr_->setJointIds(joint_ids);
-
-  // // Joint Params
-  // std::vector<ServoParams> joint_param;
-  // status_manager_ptr_->getJointParameters(joint_param);
-  // controller_ptr_->setServoParams(joint_param);
-
-  // // Initialise
-  // status_manager_ptr_->start();
-  // controller_ptr_->start();
+  // Start robot
+  robot_driver_ptr_->start();
+  // Start controller
+  controller_ptr_->start();
 }
 
 void HansCuteControllerManager::start()
 {
   running_ = true;
+  // Start state monitor thread first
+  state_monitor_thread_ = std::unique_ptr<std::thread>(new std::thread(&HansCuteControllerManager::stateMonitorThread, this));
+
+  // Now start controller thread
   control_thread_ = std::unique_ptr<std::thread>(new std::thread(&HansCuteControllerManager::controlThread, this));
 }
 
@@ -150,8 +158,11 @@ void HansCuteControllerManager::jointTargetCallback(const trajectory_msgs::Joint
 void HansCuteControllerManager::controlThread()
 {
   ROS_INFO("HansCuteControllerManager: Control thread started.");
+  // Controller needs to run at a higher frequency than the status monitor
+  ros::Rate control_rate(50);
   while (ros::ok())
   {
+    // Handle control signal
     if (target_joint_buff_.received)
     {
       HansCuteController::Data joint_pos_data;
@@ -160,6 +171,19 @@ void HansCuteControllerManager::controlThread()
       controller_ptr_->processCommand(joint_pos_data);
       target_joint_buff_.received = false;
     }
+    control_rate.sleep();
+  }
+}
+
+void HansCuteControllerManager::stateMonitorThread()
+{
+  ROS_INFO("HansCuteControllerManager: State Monitor thread started.");
+  sensor_msgs::JointState joint_state;
+  joint_state.name = joint_names_;
+  while(ros::ok())
+  {
+    robot_driver_ptr_->getJointPosition(joint_state.position);
+    joint_state_pub_.publish(joint_state);
     rate_.sleep();
   }
 }
