@@ -1,7 +1,7 @@
 ### Robot Gripper - IMPORTANT
-- [ ] Gripper bare minimum implementation - hans_cute_robot
-- [ ] Allow user to control how wide or narrow the gripper should open - hans_cute_robot
-- [ ] Allow user to control the gripper via ROS topic - hans_cute_controller
+- [x] Gripper bare minimum implementation - hans_cute_robot
+- [x] Allow user to control how wide or narrow the gripper should open - hans_cute_robot
+- [x] Allow user to control the gripper via ROS topic - hans_cute_controller
 
 ### Advanced Controller
 - [x] Bare minimum implementation of a joint position controller
