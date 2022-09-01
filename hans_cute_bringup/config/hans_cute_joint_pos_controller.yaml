@@ -60,4 +60,8 @@ robot_hardware:
       max: 3754
       speed: 300
       acceleration: 20
+    gripper:
+      name: gripper
+      min: 190
+      max: 500
   

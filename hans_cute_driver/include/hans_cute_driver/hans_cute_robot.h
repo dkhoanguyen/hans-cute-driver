@@ -15,7 +15,8 @@ namespace HansCuteRobot
     static const unsigned int SERVO_DEFAULT_ACCELERATION = 40;
 
     HansCuteRobot(const std::string &port_name, const std::string &port_namespace, const long &baud_rate,
-                  const unsigned int &min_motor_id = 0, const unsigned int &max_motor_id = 6);
+                  const unsigned int &min_joint_id = 0, const unsigned int &max_joint_id = 6,
+                  const unsigned int &gripper_id = 7);
     ~HansCuteRobot();
 
     bool initialise();
@@ -38,6 +39,10 @@ namespace HansCuteRobot
     bool setJointEffort(const std::vector<double> &efforts);
     bool getJointEffort(std::vector<double> &efforts);
 
+    // For Gripper Control
+    bool setGripperState(const unsigned int &state);
+    bool getGripperState(unsigned int &state);
+
     // Others
     bool getJointRawSpeed(std::vector<unsigned int> &speeds);
     bool setJointRawSpeed(const std::vector<unsigned int> &speeds);
@@ -47,7 +52,7 @@ namespace HansCuteRobot
 
   private:
     bool findServos();
-    bool fillServoParams(const unsigned int &servo_id, const unsigned int &model_number);
+    bool fillServoParams(const unsigned int &servo_id, const unsigned int &model_number, ServoParams &servo_param);
 
     void posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params);
     void posRawToRad(double &rad, const unsigned int &raw, const ServoParams &params);
@@ -61,11 +66,14 @@ namespace HansCuteRobot
     double update_rate_;
     double diagnostics_rate_;
 
-    unsigned int min_motor_id_;
-    unsigned int max_motor_id_;
+    unsigned int min_joint_id_;
+    unsigned int max_joint_id_;
+    unsigned int gripper_id_;
 
     bool running_;
     bool servo_found_;
+
+    ServoParams gripper_params_;
 
     std::vector<ServoParams> servos_params_;
     std::vector<unsigned int> joint_ids_;

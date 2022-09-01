@@ -13,7 +13,6 @@ struct RobotParamsInterface
 {
   
 };
-
 class SerialCommandRobotInterface
 {
 public:
@@ -34,6 +33,9 @@ public:
 
   virtual bool getJointEffort(std::vector<double> &efforts) = 0;
   virtual bool setJointEffort(const std::vector<double> &efforts) = 0;
+
+  virtual bool setGripperState(const unsigned int &state) = 0;
+  virtual bool getGripperState(unsigned int &state) = 0;
 
 protected:
   std::shared_ptr<SerialCommand> serial_command_;

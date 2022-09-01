@@ -1,13 +1,14 @@
 #include "hans_cute_driver/hans_cute_robot.h"
 
 HansCuteRobot::HansCuteRobot::HansCuteRobot(const std::string &port_name, const std::string &port_namespace,
-                                            const long &baud_rate, const unsigned int &min_motor_id,
-                                            const unsigned int &max_motor_id)
+                                            const long &baud_rate, const unsigned int &min_joint_id,
+                                            const unsigned int &max_joint_id, const unsigned int &gripper_id)
     : port_name_(port_name),
       port_namespace_(port_namespace),
       baud_rate_(baud_rate),
-      min_motor_id_(min_motor_id),
-      max_motor_id_(max_motor_id),
+      min_joint_id_(min_joint_id),
+      max_joint_id_(max_joint_id),
+      gripper_id_(gripper_id),
       running_(false),
       robot_driver_ptr_(std::make_shared<ServoDriver>()),
       SerialCommandRobotInterface()
@@ -78,7 +79,7 @@ bool HansCuteRobot::HansCuteRobot::getJointPosition(std::vector<double> &positio
 
     // Convert raw position to radian
     double position = 0.0;
-    posRawToRad(position,raw_position,servos_params_.at(idx));
+    posRawToRad(position, raw_position, servos_params_.at(idx));
     positions.push_back(position);
   }
   return true;
@@ -107,7 +108,7 @@ bool HansCuteRobot::HansCuteRobot::getJointVelocity(std::vector<double> &velocit
   for (unsigned int idx = 0; idx < joint_ids_.size(); idx++)
   {
     double velocity = 0;
-    spdRawToRad(velocity,raw_speeds.at(idx),servos_params_.at(idx));
+    spdRawToRad(velocity, raw_speeds.at(idx), servos_params_.at(idx));
     velocities.push_back(velocity);
   }
 
@@ -129,7 +130,28 @@ bool HansCuteRobot::HansCuteRobot::setJointEffort(const std::vector<double> &eff
   return true;
 }
 
-// 
+bool HansCuteRobot::HansCuteRobot::setGripperState(const unsigned int &state)
+{
+  unsigned int gripper_pose = state;
+  if(state > gripper_params_.raw_max)
+  {
+    gripper_pose = gripper_params_.raw_max;
+  }
+  else if (state < gripper_params_.raw_min)
+  {
+    gripper_pose = gripper_params_.raw_min;
+  }
+  robot_driver_ptr_->setPosition(gripper_id_,gripper_pose);
+  return true;
+}
+
+bool HansCuteRobot::HansCuteRobot::getGripperState(unsigned int &state)
+{
+  robot_driver_ptr_->setPosition(gripper_id_,state);
+  return true;
+}
+
+//
 bool HansCuteRobot::HansCuteRobot::getJointRawSpeed(std::vector<unsigned int> &speeds)
 {
   speeds.clear();
@@ -177,7 +199,7 @@ bool HansCuteRobot::HansCuteRobot::findServos()
   unsigned int num_retries = 5;
   servos_params_.clear();
   joint_ids_.clear();
-  for (int servo_id = min_motor_id_; servo_id <= max_motor_id_; servo_id++)
+  for (int servo_id = min_joint_id_; servo_id <= max_joint_id_; servo_id++)
   {
     for (int ping_try = 1; ping_try <= num_retries; ping_try++)
     {
@@ -214,7 +236,9 @@ bool HansCuteRobot::HansCuteRobot::findServos()
           continue;
         }
 
-        fillServoParams(servo_id, model_number);
+        ServoParams servo_param;
+        fillServoParams(servo_id, model_number,servo_param);
+        servos_params_.push_back(servo_param);
         servo_params_filled = true;
         break;
       }
@@ -228,12 +252,39 @@ bool HansCuteRobot::HansCuteRobot::findServos()
       break;
     }
   }
+
+  // Find gripper
+  for (int ping_try = 1; ping_try <= num_retries; ping_try++)
+  {
+    if (ping_try == num_retries)
+    {
+      std::cout << "Failed to ping motor: " << gripper_id_ << std::endl;
+      break;
+    }
+
+    // We should wrap this ping function in driver maybe
+    std::vector<uint8_t> response;
+    robot_driver_ptr_->ping((uint8_t)gripper_id_, response);
+    if (response.size() == 0)
+    {
+      continue;
+    }
+
+    std::cout << "Found servo " << gripper_id_ << std::endl;
+    unsigned int model_number = 0;
+    if (!robot_driver_ptr_->getModelNumber(gripper_id_, model_number))
+    {
+      std::cout << "Unable to retrieve servo params for servo: " << gripper_id_ << std::endl;
+      continue;
+    }
+    fillServoParams(gripper_id_, model_number,gripper_params_);
+    break;
+  }
   return true;
 }
 
-bool HansCuteRobot::HansCuteRobot::fillServoParams(const unsigned int &servo_id, const unsigned int &model_number)
+bool HansCuteRobot::HansCuteRobot::fillServoParams(const unsigned int &servo_id, const unsigned int &model_number, ServoParams &servo_param)
 {
-  ServoParams servo_param;
   servo_param.id = servo_id;
   servo_param.model_number = model_number;
 
@@ -265,8 +316,6 @@ bool HansCuteRobot::HansCuteRobot::fillServoParams(const unsigned int &servo_id,
 
   servo_param.speed = SERVO_DEFAULT_SPEED;
   servo_param.acceleration = SERVO_DEFAULT_ACCELERATION;
-
-  servos_params_.push_back(servo_param);
   return true;
 }
 

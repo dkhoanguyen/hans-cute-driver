@@ -4,7 +4,9 @@ HansCuteControllerManager::HansCuteControllerManager(ros::NodeHandle &nh) : nh_(
 {
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
   joint_target_sub_ = nh_.subscribe("target_joint_states", 10, &HansCuteControllerManager::jointTargetCallback, this);
+  gripper_state_sub_ = nh_.subscribe("target_gripper_state", 10, &HansCuteControllerManager::gripperStateCallback, this);
   target_joint_buff_.received = false;
+  gripper_state_buff_.received = false;
 }
 
 HansCuteControllerManager::~HansCuteControllerManager()
@@ -155,6 +157,17 @@ void HansCuteControllerManager::jointTargetCallback(const trajectory_msgs::Joint
   target_joint_buff_.received = true;
 }
 
+void HansCuteControllerManager::gripperStateCallback(const std_msgs::UInt16ConstPtr &gripper_state_msg)
+{
+  std::unique_lock<std::mutex> lck(gripper_state_buff_.mtx);
+  gripper_state_buff_.data_deq.push_back(*gripper_state_msg);
+  if (gripper_state_buff_.data_deq.size() > 1)
+  {
+    gripper_state_buff_.data_deq.pop_front();
+  }
+  gripper_state_buff_.received = true;
+}
+
 void HansCuteControllerManager::controlThread()
 {
   ROS_INFO("HansCuteControllerManager: Control thread started.");
@@ -170,6 +183,12 @@ void HansCuteControllerManager::controlThread()
       joint_pos_data.set(target_joint_buff_.data_deq.back().points.at(0).positions);
       controller_ptr_->processCommand(joint_pos_data);
       target_joint_buff_.received = false;
+    }
+    if (gripper_state_buff_.received)
+    {
+      std::unique_lock<std::mutex> lck(target_joint_buff_.mtx);
+      unsigned int gripper_state = gripper_state_buff_.data_deq.back().data;
+      robot_driver_ptr_->setGripperState(gripper_state);
     }
     control_rate.sleep();
   }

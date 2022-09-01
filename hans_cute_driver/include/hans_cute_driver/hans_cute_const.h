@@ -145,10 +145,12 @@ struct ServoModel
 // static const ServoModel AX12{}''
 static const ServoModel MX28{ "MX-28", 4096, 360.0, 6.0 / 12.0, (36 * RPM_TO_RADSEC) / 12.0, 0.114 / 2.5 };
 static const ServoModel MX64{ "MX-64", 4096, 360.0, 6.0 / 12.0, (32 * RPM_TO_RADSEC) / 12.0, 0.114 / 2.8 };
+static const ServoModel AX12{ "AX-12", 1024, 300.0, 3.7 / 18.5, (59 * RPM_TO_RADSEC) / 12.0, 0.111 };
 
 static const std::map<unsigned int, ServoModel> ModelToParams = {
   {29,MX28},
-  {310, MX64}
+  {310, MX64},
+  {12, AX12}
 }; // Replication of Python dictionary
 
 

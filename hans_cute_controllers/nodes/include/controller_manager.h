@@ -9,6 +9,7 @@
 #include <ros/ros.h>
 #include "trajectory_msgs/JointTrajectory.h"
 #include "sensor_msgs/JointState.h"
+#include "std_msgs/UInt16.h"
 
 #include "serial_port/custom_serial_port.h"
 #include "serial_port/serial_port_interface.h"
@@ -33,6 +34,13 @@ struct JointTrajectoryDataBuffer
   std::atomic<bool> received;
 };
 
+struct GripperStateDataBuffer
+{
+  std::deque<std_msgs::UInt16> data_deq;
+  std::mutex mtx;
+  std::atomic<bool> received;
+};
+
 class HansCuteControllerManager
 {
 public:
@@ -45,6 +53,7 @@ public:
 
 private:
   void jointTargetCallback(const trajectory_msgs::JointTrajectoryConstPtr &joint_traj_msg);
+  void gripperStateCallback(const std_msgs::UInt16ConstPtr &gripper_state_msg);
 
   // Ros
   ros::NodeHandle nh_;
@@ -55,6 +64,7 @@ private:
 
   // Subscriber
   ros::Subscriber joint_target_sub_;
+  ros::Subscriber gripper_state_sub_;
 
 private:
   void controlThread();
@@ -70,6 +80,8 @@ private:
 
   JointStateDataBuffer joint_state_buff_;
   JointTrajectoryDataBuffer target_joint_buff_;
+
+  GripperStateDataBuffer gripper_state_buff_;
 
   std::string node_name_;
   std::string node_namespace_;
