@@ -1,5 +1,6 @@
 controller: joint_position_controller
 robot_hardware:
+  port: /dev/ttyUSB0
   baud_rate: 250000
   start_joint_id: 0
   end_joint_id: 6
