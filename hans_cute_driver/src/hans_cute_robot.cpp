@@ -26,7 +26,7 @@ void HansCuteRobot::HansCuteRobot::setSerialPort(const std::shared_ptr<SerialPor
 
 bool HansCuteRobot::HansCuteRobot::initialise()
 {
-  findServos();
+  findRobot();
   // Set Speed and Acceleration
   for (unsigned int id = 0; id < joint_ids_.size(); id++)
   {
@@ -133,7 +133,7 @@ bool HansCuteRobot::HansCuteRobot::setJointEffort(const std::vector<double> &eff
 bool HansCuteRobot::HansCuteRobot::setGripperState(const unsigned int &state)
 {
   unsigned int gripper_pose = state;
-  if(state > gripper_params_.raw_max)
+  if (state > gripper_params_.raw_max)
   {
     gripper_pose = gripper_params_.raw_max;
   }
@@ -141,13 +141,13 @@ bool HansCuteRobot::HansCuteRobot::setGripperState(const unsigned int &state)
   {
     gripper_pose = gripper_params_.raw_min;
   }
-  robot_driver_ptr_->setPosition(gripper_id_,gripper_pose);
+  robot_driver_ptr_->setPosition(gripper_id_, gripper_pose);
   return true;
 }
 
 bool HansCuteRobot::HansCuteRobot::getGripperState(unsigned int &state)
 {
-  robot_driver_ptr_->setPosition(gripper_id_,state);
+  robot_driver_ptr_->setPosition(gripper_id_, state);
   return true;
 }
 
@@ -193,7 +193,7 @@ bool HansCuteRobot::HansCuteRobot::setJointRawAcceleration(const std::vector<uns
   return true;
 }
 
-bool HansCuteRobot::HansCuteRobot::findServos()
+bool HansCuteRobot::HansCuteRobot::findRobot()
 {
   std::vector<unsigned int> motor_ids_list;
   unsigned int num_retries = 5;
@@ -201,83 +201,72 @@ bool HansCuteRobot::HansCuteRobot::findServos()
   joint_ids_.clear();
   for (int servo_id = min_joint_id_; servo_id <= max_joint_id_; servo_id++)
   {
-    for (int ping_try = 1; ping_try <= num_retries; ping_try++)
+    if (findJointServo(servo_id))
     {
-      if (ping_try == num_retries)
-      {
-        std::cout << "Failed to ping motor: " << servo_id << std::endl;
-        break;
-      }
-
-      // We should wrap this ping function in driver maybe
-      std::vector<uint8_t> response;
-      robot_driver_ptr_->ping((uint8_t)servo_id, response);
-      if (response.size() == 0)
-      {
-        continue;
-      }
-
-      // IF we can ping this servo then, we should be able to retrieve the servo params
       std::cout << "Found servo " << servo_id << std::endl;
       joint_ids_.push_back(servo_id);
-      bool servo_params_filled = false;
-      for (int query_param_try = 1; query_param_try <= num_retries; query_param_try++)
+
+      unsigned int model_number = 0;
+      if (getJointSerboModelNumber(servo_id, model_number))
       {
-        if (query_param_try == num_retries)
-        {
-          std::cout << "Unable to retrieve servo params for servo after 5 tries: " << servo_id << std::endl;
-          break;
-        }
-
-        unsigned int model_number = 0;
-        if (!robot_driver_ptr_->getModelNumber(servo_id, model_number))
-        {
-          std::cout << "Unable to retrieve servo params for servo: " << servo_id << std::endl;
-          continue;
-        }
-
         ServoParams servo_param;
-        fillServoParams(servo_id, model_number,servo_param);
+        fillServoParams(servo_id, model_number, servo_param);
         servos_params_.push_back(servo_param);
-        servo_params_filled = true;
-        break;
       }
-
-      // Only add to id list if we can retrieve params of this servo
-      if (servo_params_filled)
-      {
-        motor_ids_list.push_back(servo_id);
-      }
-
-      break;
     }
   }
 
   // Find gripper
+  if (findJointServo(gripper_id_))
+  {
+    std::cout << "Found servo " << gripper_id_ << std::endl;
+    unsigned int model_number = 0;
+    if (getJointSerboModelNumber(gripper_id_, model_number))
+    {
+      fillServoParams(gripper_id_, model_number, gripper_params_);
+    }
+  }
+  return true;
+}
+
+bool HansCuteRobot::HansCuteRobot::findJointServo(const unsigned int &servo_id)
+{
+  unsigned int num_retries = 5;
   for (int ping_try = 1; ping_try <= num_retries; ping_try++)
   {
     if (ping_try == num_retries)
     {
-      std::cout << "Failed to ping motor: " << gripper_id_ << std::endl;
-      break;
+      std::cout << "Failed to ping motor: " << servo_id << std::endl;
+      return false;
     }
 
     // We should wrap this ping function in driver maybe
     std::vector<uint8_t> response;
-    robot_driver_ptr_->ping((uint8_t)gripper_id_, response);
+    robot_driver_ptr_->ping((uint8_t)servo_id, response);
     if (response.size() == 0)
     {
       continue;
     }
-
-    std::cout << "Found servo " << gripper_id_ << std::endl;
-    unsigned int model_number = 0;
-    if (!robot_driver_ptr_->getModelNumber(gripper_id_, model_number))
+    break;
+  }
+  return true;
+}
+bool HansCuteRobot::HansCuteRobot::getJointSerboModelNumber(const unsigned int &servo_id, unsigned int &model_number)
+{
+  unsigned int num_retries = 5;
+  for (int query_try = 1; query_try <= num_retries; query_try++)
+  {
+    if (query_try == num_retries)
     {
-      std::cout << "Unable to retrieve servo params for servo: " << gripper_id_ << std::endl;
+      std::cout << "Unable to retrieve servo params for servo after 5 tries: " << servo_id << std::endl;
+      return false;
+    }
+
+    if (!robot_driver_ptr_->getModelNumber(servo_id, model_number))
+    {
+      std::cout << "Unable to retrieve servo params for servo: " << servo_id << std::endl;
       continue;
     }
-    fillServoParams(gripper_id_, model_number,gripper_params_);
     break;
   }
   return true;

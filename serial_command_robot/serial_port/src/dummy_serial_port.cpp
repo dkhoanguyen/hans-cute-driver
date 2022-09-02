@@ -33,7 +33,7 @@ unsigned int DummySerialPort::read(std::vector<uint8_t> &data)
 
 int DummySerialPort::available()
 {
-  return 1;
+  return read_data_stream_.size();
 }
 
 void DummySerialPort::getWriteDataStream(std::vector<uint8_t> &data)

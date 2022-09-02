@@ -51,7 +51,9 @@ namespace HansCuteRobot
     bool setJointRawAcceleration(const std::vector<unsigned int> &accelerations);
 
   private:
-    bool findServos();
+    bool findRobot();
+    bool findJointServo(const unsigned int &servo_id);
+    bool getJointSerboModelNumber(const unsigned int &servo_id, unsigned int &model_number);
     bool fillServoParams(const unsigned int &servo_id, const unsigned int &model_number, ServoParams &servo_param);
 
     void posRadToRaw(const double &rad, unsigned int &raw, const ServoParams &params);
