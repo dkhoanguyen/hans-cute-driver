@@ -1,7 +1,7 @@
 # Hans Cute Robot ROS Driver
 
 ## Introduction
-The hans-cute-driver provides a bare minimum interface to communicate with the Hans Cute (Cyton) Robot. This driver also leverages ROS as well as other ROS native tools to create an end-to-end system where a user can control and query data from the robot in a relatively straightforward manner. However, it does not mean that ROS is required to use this driver. Since the core build system is cmake, one can easily integrate and use this driver as an external library for any c++ project.
+The hans-cute-driver provides a bare minimum interface to communicate with the Hans Cute (Cyton) Robot. This driver also leverages ROS as well as other ROS native tools to create an end-to-end system where a user can control and query data from the robot in a relatively straightforward manner. However, it does not mean that ROS is required to use this driver, as it is developed with the goal of being a standalone library for any c++ project.
 
 ## Currently supported features
 
@@ -37,10 +37,14 @@ Remember to source your workspace after `catkin_make`
 ```
 source devel/setup.bash
 ```
+If you are running into problems with your USB connection, either because of system permission, or SerialPort unable open the usb connection, you may want to try this command WITH YOUR USB CABLE CONNECTED:
+```
+sudo chown $LOGNAME /dev/ttyUSB0
+```
 
 ## Quick Start
 ### Preparing the robot
-When receiving the robot, please make sure that you check for any loose screw or misplaced joints, using the provided documents and images. Then put the robot down in a flat and stable surface. If possible, it is recommened to use tape or any other means to stablise the robot base onto the surface, as the force generated during its operation may cause the base to displace unintentionally
+When receiving the robot, please make sure that you check for any loose screw or misplaced joints, using the provided documents and images. Then put the robot down in a flat and stable surface. If possible, it is recommened to use tape or any other means to stablise the robot base onto the surface, as the force generated during its operation may cause the base to displace unintentionally.
 
 ### Preparing the ROS computer
 
@@ -49,6 +53,29 @@ Install ROS then install the package using the above instruction.
 Run the following command to start the package
 ```
 roslaunch hans_cute_bringup hans_cute_bringup.launch
+```
+
+### Sending control commands using MATLAB
+#### Joint Position
+Since the hans has 7 joints, please ensure that when sending control commands there must be exactly 7 joint values, similar to the MATLAB example script. Joint position value range depends on the min and max values listed in the configuration file and the unit is radian.
+```
+%% Start Dobot ROS
+hans = HansCute();
+
+%% Test Motion
+%% Publish custom joint target
+jointTargets = [0,0,0,0,0,0,0]; % 7 joint positions
+hans.PublishTargetJoint(jointTargets);
+```
+#### Gripper
+You can control the width of the gripper claw by sending a raw position value, ranges from 200 to 500 (according to the default values in the configuration files).
+```
+%% Start Dobot ROS
+hans = HansCute();
+
+%% Publish gripper state
+gripperState = 500;
+hans.PublishGripperState(gripperState);
 ```
 
 ## How to configure the driver

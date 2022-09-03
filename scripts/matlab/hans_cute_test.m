@@ -10,9 +10,9 @@ hans = HansCute();
 
 %% Test Motion
 %% Publish custom joint target
- joint_target = [0,0,0,0,0,0,0];
-hans.PublishTargetJoint(joint_target);
+jointTargets = [0,0,0,0,0,0,0]; % 7 joint positions
+hans.PublishTargetJoint(jointTargets);
 
 %% Publish gripper state
-gripper_state = 500;
-hans.PublishGripperState(gripper_state);
+gripperState = 500;
+hans.PublishGripperState(gripperState);
