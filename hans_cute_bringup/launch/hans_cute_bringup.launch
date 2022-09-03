@@ -1,0 +1,7 @@
+<launch>
+  <arg name="port" default="/dev/ttyUSB0"/>
+  <node name="controller_manager" pkg="hans_cute_controllers" type="hans_cute_controllers_node" ns="hans_cute_robot" output="screen">
+    <param name="port" value="$(arg port)"/>
+    <rosparam file="$(find hans_cute_bringup)/config/hans_cute_joint_pos_controller.yaml" command="load"/>
+  </node>
+</launch>

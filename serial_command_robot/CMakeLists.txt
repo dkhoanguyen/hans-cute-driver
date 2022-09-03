@@ -1,16 +1,16 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(hans_cute_status_manager)
+project(serial_command_robot)
 
 # # Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 # # Find catkin macros and libraries
 # # if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 # # is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  hans_cute_driver
-  roscpp
 )
+
+add_subdirectory(serial_port)
 
 # # System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -101,10 +101,9 @@ find_package(catkin REQUIRED COMPONENTS
 # # CATKIN_DEPENDS: catkin_packages dependent projects also need
 # # DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-
-  # LIBRARIES hans_cute_status_manager
-  CATKIN_DEPENDS hans_cute_driver roscpp
+  INCLUDE_DIRS include serial_port/include
+  LIBRARIES LIBRARIES ${PROJECT_NAME} serial_port
+  CATKIN_DEPENDS roscpp
 
   # DEPENDS system_lib
 )
@@ -113,8 +112,8 @@ catkin_package(
 # # Build ##
 # ##########
 set(${PROJECT_NAME}_SOURCES
-  src/hans_cute_status_manager.cpp
-  src/main.cpp
+  src/serial_command_robot_interface.cpp
+  src/serial_command.cpp
 )
 
 # # Specify additional locations of header files
@@ -122,22 +121,27 @@ set(${PROJECT_NAME}_SOURCES
 include_directories(
   include
   ${catkin_INCLUDE_DIRS}
+  serial_port/include
 )
 
 # # Declare a C++ library
-# add_library(${PROJECT_NAME}
-# src/${PROJECT_NAME}/hans_cute_status_manager.cpp
-# )
+add_library(${PROJECT_NAME} ${${PROJECT_NAME}_SOURCES})
 
 # # Add cmake target dependencies of the library
 # # as an example, code may need to be generated before libraries
 # # either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+# # Specify libraries to link a library or executable target against
+target_link_libraries(${PROJECT_NAME}
+  ${catkin_LIBRARIES}
+  serial_port
+)
 
 # # Declare a C++ executable
 # # With catkin_make all packages are built within a single CMake context
 # # The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node ${${PROJECT_NAME}_SOURCES})
+# add_executable(${PROJECT_NAME}_node ${${PROJECT_NAME}_SOURCES})
 
 # # Rename C++ executable without prefix
 # # The above recommended prefix causes long target names, the following renames the
@@ -147,12 +151,13 @@ add_executable(${PROJECT_NAME}_node ${${PROJECT_NAME}_SOURCES})
 
 # # Add cmake target dependencies of the executable
 # # same as for the library above
-add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # # Specify libraries to link a library or executable target against
-target_link_libraries(${PROJECT_NAME}_node
-  ${catkin_LIBRARIES}
-)
+# target_link_libraries(${PROJECT_NAME}_node
+#   ${catkin_LIBRARIES}
+#   serial_port
+# )
 
 # ############
 # # Install ##
@@ -201,7 +206,7 @@ target_link_libraries(${PROJECT_NAME}_node
 # ############
 
 # # Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_hans_cute_status_manager.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_serial_command_robot.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 # target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()

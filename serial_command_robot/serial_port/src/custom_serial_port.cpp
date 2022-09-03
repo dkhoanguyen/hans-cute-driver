@@ -1,4 +1,5 @@
-#include "hans_cute_driver/custom_serial_port.h"
+#include "serial_port/custom_serial_port.h"
+
 SerialPort::SerialPort(const std::string& port, const speed_t& baud_rate, int32_t timeout)
   : port_(port)
   , baud_rate_(baud_rate)
@@ -12,7 +13,7 @@ SerialPort::SerialPort(const std::string& port, const speed_t& baud_rate, int32_
   read_buffer_.reserve(read_buffer_size_B_);
 }
 
-SerialPort::SerialPort() : SerialPort("/dev/ttyUSB0",115200,50)
+SerialPort::SerialPort() : SerialPort("/dev/ttyUSB0",250000,50)
 {
 }
 

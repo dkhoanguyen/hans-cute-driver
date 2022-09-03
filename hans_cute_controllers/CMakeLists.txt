@@ -2,14 +2,14 @@ cmake_minimum_required(VERSION 3.0.2)
 project(hans_cute_controllers)
 
 # # Compile as C++11, supported in ROS Kinetic and newer
-# add_compile_options(-std=c++11)
+add_compile_options(-std=c++11)
 
 # # Find catkin macros and libraries
 # # if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 # # is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
   hans_cute_driver
-  hans_cute_status_manager
+  serial_command_robot
   roscpp
 )
 
@@ -102,39 +102,44 @@ find_package(catkin REQUIRED COMPONENTS
 # # CATKIN_DEPENDS: catkin_packages dependent projects also need
 # # DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-
-  INCLUDE_DIRS include
-  # LIBRARIES hans_cute_controllers
-  CATKIN_DEPENDS hans_cute_driver hans_cute_status_manager roscpp
+  INCLUDE_DIRS include nodes/include
+  LIBRARIES ${PROJECT_NAME} 
+  CATKIN_DEPENDS hans_cute_driver roscpp serial_command_robot
   # DEPENDS system_lib
 )
 
 # ##########
 # # Build ##
 # ##########
-set(${PROJECT_NAME}_SOURCES
+set(${PROJECT_NAME}_LIBSOURCES
   src/controller.cpp
   src/joint_position_controller.cpp
-  src/main.cpp
 )
+
+set(${PROJECT_NAME}_SOURCES
+  nodes/src/controller_manager.cpp
+  nodes/src/main.cpp
+)
+
 
 # # Specify additional locations of header files
 # # Your package locations should be listed before other locations
+# # We should separate library source and application source
 include_directories(
-
   include
   ${catkin_INCLUDE_DIRS}
+  nodes/include
 )
 
 # # Declare a C++ library
-# add_library(${PROJECT_NAME}
-# src/${PROJECT_NAME}/hans_cute_controllers.cpp
-# )
+add_library(${PROJECT_NAME}
+  ${${PROJECT_NAME}_LIBSOURCES}
+)
 
 # # Add cmake target dependencies of the library
 # # as an example, code may need to be generated before libraries
 # # either from message generation or dynamic reconfigure
-# add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # # Declare a C++ executable
 # # With catkin_make all packages are built within a single CMake context
@@ -154,6 +159,7 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 # # Specify libraries to link a library or executable target against
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
+  ${PROJECT_NAME}
 )
 
 # ############
