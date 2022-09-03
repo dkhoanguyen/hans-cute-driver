@@ -1,7 +1,6 @@
 #ifndef _JOINT_CONTROLLER_INTERFACE_H_
 #define _JOINT_CONTROLLER_INTERFACE_H_
 
-#include "hans_cute_driver/hans_cute_driver.h"
 #include "controller_datatype.h"
 
 namespace HansCuteController

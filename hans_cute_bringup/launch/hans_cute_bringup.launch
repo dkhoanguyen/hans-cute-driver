@@ -1,5 +1,4 @@
 <launch>
-  <arg name="servo" default="xqtor_1"/>
   <arg name="port" default="/dev/ttyUSB0"/>
   <node name="controller_manager" pkg="hans_cute_controllers" type="hans_cute_controllers_node" ns="hans_cute_robot" output="screen">
     <param name="port" value="$(arg port)"/>
