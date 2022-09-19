@@ -22,7 +22,9 @@ This repository contains the following packages:
 ### For end user
 
 ### For developers (and Robotics students)
-
+Refer to http://wiki.ros.org/noetic/Installation for how to install and configure ROS for your development computer if you haven't done so.
+Then refer to http://wiki.ros.org/catkin/Tutorials/create_a_workspace for creating and configuring a catkin workspace for your project development.
+Please also go through the tutorial here https://au.mathworks.com/help/ros/ug/get-started-with-ros.html to familiarise yourself with using ROS in MATLAB.
 Simply clone the repository in the `src` directory of your catkin_workspace
 ```
 cd ~/catkin_ws/src
@@ -91,4 +93,10 @@ Right now, the default config file is `hans_cute_joint_pos_controller.yml`, whic
 NOTE: Please do not modify other parameters that are not listed in the above lists, as it may affect some basic functionalities of the driver.
 
 ## Troubleshooting
-TBA
+If you have any concer or issue regarding this driver, please contact the maintainer: khoa.nguyen@uts.edu.au. You may also open an issue on GitHub for any assistance or question that you might have. For bug reporting, please open an issue on GitHub, with a brief description on the following points:
+- Summary of the problems or the bug
+- What is configuration or settings of the driver when the problem appears
+- How to reproduce the above problem
+- Suggested solutions or suggestions for fixing the problem if you have
+
+We will provide a template for bug reporting soon.
