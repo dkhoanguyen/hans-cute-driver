@@ -8,8 +8,10 @@ add_compile_options(-std=c++11)
 # # if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 # # is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  serial_command_robot
+  # serial_command_robot
 )
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(LIBUDEV REQUIRED libudev)
 
 # # System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -103,7 +105,7 @@ catkin_package(
 
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp serial_command_robot
+  CATKIN_DEPENDS roscpp
 
   # DEPENDS system_lib
 )
@@ -113,9 +115,10 @@ catkin_package(
 # ##########
 
 set(${PROJECT_NAME}_SOURCES
-  src/hans_cute_serial.cpp
-  src/hans_cute_driver.cpp
-  src/hans_cute_robot.cpp
+  # src/hans_cute_serial.cpp
+  # src/hans_cute_driver.cpp
+  # src/hans_cute_robot.cpp
+  src/serial_port_manager.cpp
 )
 
 # # Specify additional locations of header files
@@ -141,7 +144,7 @@ target_link_libraries(${PROJECT_NAME}
 # # Declare a C++ executable
 # # With catkin_make all packages are built within a single CMake context
 # # The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node example/main.cpp)
+add_executable(${PROJECT_NAME}_node example/main.cpp)
 
 # # Rename C++ executable without prefix
 # # The above recommended prefix causes long target names, the following renames the
@@ -151,12 +154,14 @@ target_link_libraries(${PROJECT_NAME}
 
 # # Add cmake target dependencies of the executable
 # # same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 
 # # Specify libraries to link a library or executable target against
-# target_link_libraries(${PROJECT_NAME}_node
-#   ${catkin_LIBRARIES}
-# )
+target_link_libraries(${PROJECT_NAME}_node
+  ${catkin_LIBRARIES}
+  ${PROJECT_NAME} 
+  ${LIBUDEV_LDFLAGS}
+)
 
 # ############
 # # Install ##
@@ -204,16 +209,16 @@ target_link_libraries(${PROJECT_NAME}
 # # Testing ##
 # ############
 
-# # Add gtest based cpp test target and link libraries
-set(${PROJECT_NAME}_TESTS
-  test/test_hans_cute_serial.cpp
-)
-catkin_add_gtest(${PROJECT_NAME}-test ${${PROJECT_NAME}_TESTS})
+# # # Add gtest based cpp test target and link libraries
+# set(${PROJECT_NAME}_TESTS
+#   test/test_hans_cute_serial.cpp
+# )
+# catkin_add_gtest(${PROJECT_NAME}-test ${${PROJECT_NAME}_TESTS})
 
-target_link_libraries(${PROJECT_NAME}-test 
-  ${PROJECT_NAME}
-  serial_port
-)
+# target_link_libraries(${PROJECT_NAME}-test 
+#   ${PROJECT_NAME}
+#   serial_port
+# )
 
 
 # # Add folders to be run by python nosetests

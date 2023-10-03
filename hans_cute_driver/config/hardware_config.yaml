@@ -1,0 +1,4 @@
+config:
+  port:
+    vendor_id: "1a86"
+    product_id: "7523"
