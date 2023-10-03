@@ -68,7 +68,6 @@ class SerialPort
 {
 public:
   SerialPort(const std::string& port, const speed_t& baud_rate, int32_t timeout);
-  SerialPort();
   virtual ~SerialPort();
 
   // Setters
@@ -80,8 +79,8 @@ public:
   void setTimeout(const int32_t& timeout);
 
   //
-  void openPort();
-  void closePort();
+  bool openPort();
+  bool closePort();
   bool isOpen() const;
 
   void write(const std::vector<uint8_t>& data);
@@ -92,10 +91,7 @@ public:
 
 private:
   void configure();
-
-  void setReadDataStream(const std::vector<uint8_t> &data) {};
-  void getWriteDataStream(std::vector<uint8_t> &data) {};
-
+  
   std::string port_;
   speed_t baud_rate_;
 

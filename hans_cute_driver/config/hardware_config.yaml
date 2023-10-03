@@ -2,3 +2,8 @@ config:
   port:
     vendor_id: "1a86"
     product_id: "7523"
+  packet:
+    header: ["0xAA","0xAA"]
+    id: 2
+    length: 3
+    data: 4
