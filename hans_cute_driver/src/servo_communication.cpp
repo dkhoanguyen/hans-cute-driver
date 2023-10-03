@@ -40,18 +40,15 @@ namespace HansCuteRobot
     uint8_t checksum = 255 - ((id + length + (uint8_t)InstructionSet::READ_DATA + address + size) % 256);
     packet.push_back(checksum);
 
-    // Thread safe execution of
-    int err = writeCommand(packet);
-    if (err == 0)
+    int write_status = writeCommand(packet);
+    if (write_status != (int)SerialError::NO_ERROR)
     {
-      std::cout << "Cannot write" << std::endl;
       return false;
     }
     // Read response ans return data
     int status = readResponse(returned_data);
     if (status != 0)
     {
-      std::cout << "Wrong packet" << std::endl;
       return false;
     }
     return true;
@@ -78,17 +75,15 @@ namespace HansCuteRobot
     uint8_t checksum = 255 - (sum % 256);
     packet.push_back(checksum);
 
-    // Thread safe execution of
-    if (!writeCommand(packet))
+    int write_status = writeCommand(packet);
+    if (write_status != (int)SerialError::NO_ERROR)
     {
-      std::cout << "Failed to write packet" << std::endl;
       return false;
     }
     // Read response ans return data
     int status = readResponse(returned_data);
     if (status != 0)
     {
-      std::cout << "Wrong packet" << std::endl;
       return false;
     }
     return true;
@@ -117,8 +112,8 @@ namespace HansCuteRobot
     uint8_t checksum = 255 - (sum % 256);
     packet.push_back(checksum);
 
-    // Thread safe execution of
-    if (!writeCommand(packet))
+    int write_status = writeCommand(packet);
+    if (write_status != (int)SerialError::NO_ERROR)
     {
       return false;
     }
@@ -145,8 +140,8 @@ namespace HansCuteRobot
     uint8_t checksum = 255 - ((id + length + (uint8_t)InstructionSet::PING) % 256);
     packet.push_back(checksum);
 
-    // Thread safe execution of
-    if (!writeCommand(packet))
+    int write_status = writeCommand(packet);
+    if (write_status != (int)SerialError::NO_ERROR)
     {
       return false;
     }
@@ -213,7 +208,6 @@ namespace HansCuteRobot
       return (int)SerialError::WRONG_CHECKSUM;
     }
     response = returned_data;
-
     return (int)SerialError::NO_ERROR;
   }
 
@@ -223,7 +217,7 @@ namespace HansCuteRobot
     {
       serial_port_ptr_->write(command);
       serial_port_ptr_->wait();
-      return (int)SerialError::WRITE_ERROR;
+      return (int)SerialError::NO_ERROR;
     }
     catch (const std::exception &se)
     {
@@ -266,8 +260,7 @@ namespace HansCuteRobot
     std::vector<uint8_t> data({min_angle_low, min_angle_high, max_angle_low, max_angle_high});
     std::vector<uint8_t> returned_data;
     unsigned long timestamp;
-    write(servo_id, (uint8_t)ControlTableConstant::CW_ANGLE_LIMIT_L, data, returned_data, timestamp);
-    return true;
+    return write(servo_id, (uint8_t)ControlTableConstant::CW_ANGLE_LIMIT_L, data, returned_data, timestamp);
   }
   bool ServoComms::setVoltageLimits(
       const uint8_t &servo_id, const double &min, const double &max)
@@ -284,7 +277,13 @@ namespace HansCuteRobot
   // These functions can send multiple commands to a single servo  //
   //===============================================================//
   bool ServoComms::setTorqueEnable(
-      const uint8_t &servo_id, const bool &enabled) {}
+      const uint8_t &servo_id, const bool &enabled)
+  {
+    std::vector<uint8_t> data({(uint8_t)enabled});
+    std::vector<uint8_t> returned_data;
+    unsigned long timestamp;
+    return write(servo_id, (uint8_t)ControlTableConstant::TORQUE_ENABLE, data, returned_data, timestamp);
+  }
   bool ServoComms::setComplianceMargin() {}
   bool ServoComms::setComplianceSlope() {}
 
@@ -298,8 +297,7 @@ namespace HansCuteRobot
     std::vector<uint8_t> raw_data({(uint8_t)(acceleration % 256), (uint8_t)(acceleration >> 8)});
     std::vector<uint8_t> returned_data;
     unsigned long timestamp;
-    write(servo_id, (uint8_t)ControlTableConstant::GOAL_ACCELERATION, raw_data, returned_data, timestamp);
-    return true;
+    return write(servo_id, (uint8_t)ControlTableConstant::GOAL_ACCELERATION, raw_data, returned_data, timestamp);
   }
   bool ServoComms::setPosition(
       const uint8_t &servo_id, const unsigned int &position)
@@ -307,8 +305,7 @@ namespace HansCuteRobot
     std::vector<uint8_t> raw_postion({(uint8_t)(position % 256), (uint8_t)(position >> 8)});
     std::vector<uint8_t> returned_data;
     unsigned long timestamp;
-    write(servo_id, (uint8_t)ControlTableConstant::GOAL_POSITION_L, raw_postion, returned_data, timestamp);
-    return true;
+    return write(servo_id, (uint8_t)ControlTableConstant::GOAL_POSITION_L, raw_postion, returned_data, timestamp);
   }
   bool ServoComms::setSpeed(
       const uint8_t &servo_id, const unsigned int &speed)
@@ -316,8 +313,7 @@ namespace HansCuteRobot
     std::vector<uint8_t> raw_speed({(uint8_t)(speed % 256), (uint8_t)(speed >> 8)});
     std::vector<uint8_t> returned_data;
     unsigned long timestamp;
-    write(servo_id, (uint8_t)ControlTableConstant::GOAL_SPEED_L, raw_speed, returned_data, timestamp);
-    return true;
+    return write(servo_id, (uint8_t)ControlTableConstant::GOAL_SPEED_L, raw_speed, returned_data, timestamp);
   }
 
   bool ServoComms::setTorqueLimit(
@@ -382,8 +378,7 @@ namespace HansCuteRobot
       data.insert(data.end(), speed.begin(), speed.end());
       data_lists.push_back(data);
     }
-    syncWrite((uint8_t)ControlTableConstant::GOAL_POSITION_L, data_lists);
-    return true;
+    return syncWrite((uint8_t)ControlTableConstant::GOAL_POSITION_L, data_lists);
   }
 
   //===============================//

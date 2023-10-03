@@ -6,16 +6,16 @@ int main()
 {
   SerialPortManager manager;
   manager.startMonitoring();
-  while(manager.serialPortAvailable("0403","6001").empty());
-  std::string port = manager.serialPortAvailable("0403","6001");
+  while (manager.serialPortAvailable("0403", "6001").empty());
+  std::string port = manager.serialPortAvailable("0403", "6001");
   HansCuteRobot::ServoComms servo_comms;
-  std::cout << servo_comms.open(port) << std::endl;;
-  for (int i = 0; i <= 0; i++)
+  servo_comms.open(port);
+  for (int i = 0; i <= 6; i++)
   {
     std::vector<uint8_t> response;
     unsigned int position = 0;
+    servo_comms.setTorqueEnable(i,true);
     servo_comms.getPosition(i, position);
-    std::cout << position << std::endl;
     servo_comms.setPosition(i, position);
     servo_comms.setPosition(i, 2048);
   }
