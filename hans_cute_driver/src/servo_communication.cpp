@@ -42,14 +42,13 @@ namespace HansCuteRobot
 
     // Thread safe execution of
     int err = writeCommand(packet);
-    if (err != 0)
+    if (err == 0)
     {
       std::cout << "Cannot write" << std::endl;
       return false;
     }
     // Read response ans return data
     int status = readResponse(returned_data);
-    std::cout << status << std::endl;
     if (status != 0)
     {
       std::cout << "Wrong packet" << std::endl;
@@ -213,7 +212,6 @@ namespace HansCuteRobot
     {
       return (int)SerialError::WRONG_CHECKSUM;
     }
-
     response = returned_data;
 
     return (int)SerialError::NO_ERROR;
@@ -225,7 +223,7 @@ namespace HansCuteRobot
     {
       serial_port_ptr_->write(command);
       serial_port_ptr_->wait();
-      return (int)SerialError::NO_ERROR;
+      return (int)SerialError::WRITE_ERROR;
     }
     catch (const std::exception &se)
     {
