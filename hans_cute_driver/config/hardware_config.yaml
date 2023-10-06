@@ -2,8 +2,57 @@ config:
   port:
     vendor_id: "1a86"
     product_id: "7523"
-  packet:
-    header: ["0xAA","0xAA"]
-    id: 2
-    length: 3
-    data: 4
+
+  servo_params:
+    - name: joint_0
+      origin: 2048
+      min: 342
+      max: 3754
+      speed: 300
+      acceleration: 30
+
+    - name: joint_1
+      origin: 2120
+      min: 853
+      max: 3243
+      speed: 300
+      acceleration: 20
+
+    - name: joint_2
+      origin: 2048
+      min: 342
+      max: 3754
+      speed: 300
+      acceleration: 20
+
+    - name: joint_3
+      origin: 2068
+      min: 853
+      max: 3243
+      speed: 300
+      acceleration: 20
+
+    - name: joint_4
+      origin: 2048
+      min: 853
+      max: 3243
+      speed: 300
+      acceleration: 20
+
+    - name: joint_5
+      origin: 2048
+      min: 853
+      max: 3243
+      speed: 300
+      acceleration: 20
+
+    - name: joint_6
+      origin: 2048
+      min: 342
+      max: 3754
+      speed: 300
+      acceleration: 20
+
+    - name: gripper
+      min: 190
+      max: 500

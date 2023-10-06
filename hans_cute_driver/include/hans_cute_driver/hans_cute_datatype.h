@@ -160,62 +160,6 @@ namespace HansCuteRobot
       std::cout << "Moving: " << feedback.moving;
     };
   };
-
-  void unpackFloats(const std::vector<uint8_t>::iterator &it, float &output)
-  {
-    uint8_t b[] = {*it, *(it + 1), *(it + 2), *(it + 3)};
-    std::memcpy(&output, &b, sizeof(output)); // convert to float from bytes[4]
-                                              //     printf("%f\n", temp);
-  }
-
-  void floatToByte(float float_variable, uint8_t temp_bytes[])
-  {
-    union
-    {
-      float a;
-      uint8_t bytes[4];
-    } link;
-    link.a = float_variable;
-    std::memcpy(temp_bytes, link.bytes, 4);
-  }
-
-  void doubleToByte(double double_variable, uint8_t temp_bytes[])
-  {
-    union
-    {
-      double a;
-      uint8_t bytes[8];
-    } link;
-
-    link.a = double_variable;
-    std::memcpy(temp_bytes, link.bytes, 8);
-  }
-
-  void packFromFloats(const std::vector<float> &value_to_pack, std::vector<uint8_t> &packed_floats)
-  {
-    for (const float value : value_to_pack)
-    {
-      uint8_t bytes_temp[4];
-      floatToByte(value, bytes_temp);
-      for (int j = 0; j < 4; ++j)
-      {
-        packed_floats.push_back(bytes_temp[j]);
-      }
-    }
-  }
-
-  void packFromDoubles(const std::vector<double> &value_to_pack, std::vector<uint8_t> &packed_doubles)
-  {
-    for (const double value : value_to_pack)
-    {
-      uint8_t bytes_temp[8];
-      doubleToByte(value, bytes_temp);
-      for (int j = 0; j < 8; j++)
-      {
-        packed_doubles.push_back(bytes_temp[j]);
-      }
-    }
-  }
 }; // namespace HansCuteRobot
 
 #endif

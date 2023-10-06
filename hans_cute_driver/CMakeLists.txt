@@ -10,6 +10,7 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   # serial_command_robot
 )
+# find_package(yaml-cpp REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(LIBUDEV REQUIRED libudev)
 
@@ -118,6 +119,7 @@ set(${PROJECT_NAME}_SOURCES
   src/serial_port_manager.cpp
   src/serial_port.cpp
   src/servo_communication.cpp
+  src/hans_cute_driver.cpp
 )
 
 # # Specify additional locations of header files

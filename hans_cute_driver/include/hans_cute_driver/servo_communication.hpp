@@ -14,6 +14,7 @@
 
 #include "hans_cute_datatype.h"
 #include "hans_cute_const.h"
+#include "servo_utils.hpp"
 #include "serial_port.hpp"
 
 namespace HansCuteRobot
