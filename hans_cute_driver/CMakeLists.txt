@@ -10,6 +10,8 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   sensor_msgs
+  actionlib
+  control_msgs
 )
 # find_package(yaml-cpp REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -148,7 +150,6 @@ target_link_libraries(${PROJECT_NAME}
 # # With catkin_make all packages are built within a single CMake context
 # # The recommended prefix ensures that target names across packages don't collide
 add_executable(${PROJECT_NAME}_node 
-# example/main.cpp
 src/hans_cute_ros_wrapper.cpp
 )
 

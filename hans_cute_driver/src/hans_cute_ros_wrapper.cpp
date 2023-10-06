@@ -1,10 +1,14 @@
 #include "hans_cute_driver/hans_cute_ros_wrapper.hpp"
 
 HansCuteRosWrapper::HansCuteRosWrapper(ros::NodeHandle &nh)
-    : nh_(nh), start_(false)
+    : nh_(nh), start_(false),
+      follow_joint_as_(nh, "/follow_joint_trajectory",
+                       boost::bind(&HansCuteRosWrapper::followJointTrajGoalCb, this, _1), false)
 {
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
   state_thread_ = nh_.createTimer(ros::Duration(0.05), &HansCuteRosWrapper::stateThread, this);
+
+  follow_joint_as_.registerGoalCallback()
 }
 
 HansCuteRosWrapper::~HansCuteRosWrapper()
@@ -16,7 +20,8 @@ void HansCuteRosWrapper::init()
   // Init robot
   SerialPortManager manager;
   manager.startMonitoring();
-  while (manager.serialPortAvailable("0403", "6001").empty());
+  while (manager.serialPortAvailable("0403", "6001").empty())
+    ;
   std::string port = manager.serialPortAvailable("0403", "6001");
   driver_.init("/dev/ttyUSB0");
 
@@ -121,6 +126,11 @@ void HansCuteRosWrapper::stateThread(const ros::TimerEvent &event)
   joint_state_msg.position = joint_positions;
   joint_state_msg.header.stamp = ros::Time::now();
   joint_state_pub_.publish(joint_state_msg);
+}
+
+void HansCuteRosWrapper::followJointTrajGoalCb(
+    const actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle &goal_handle)
+{
 }
 
 int main(int argc, char **argv)

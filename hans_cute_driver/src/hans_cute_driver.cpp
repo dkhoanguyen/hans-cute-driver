@@ -107,7 +107,6 @@ namespace HansCuteRobot
         // let's load parameters
         // Angle limits
         // std::cout << "Found servo: " << it.second.id << ": "<< servo_params_[joint_id].joint_name << std::endl;
-
         servo_comms_.setAngleLimits(
             joint_id, servo_params_[joint_id].raw_min, servo_params_[joint_id].raw_max);
         // Max speed
