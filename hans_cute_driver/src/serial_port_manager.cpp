@@ -1,6 +1,6 @@
 #include "hans_cute_driver/serial_port_manager.hpp"
 
-SerialPortManager::SerialPortManager()
+SerialPortManager::SerialPortManager() : start_monitoring_(false)
 {
   udev_ = udev_new();
   if (!udev_)
@@ -48,7 +48,7 @@ std::string SerialPortManager::serialPortAvailable(const std::string &vendor_id,
     {
       close(fd);
       return port;
-    } 
+    }
     close(fd);
   }
   return "";
@@ -56,7 +56,14 @@ std::string SerialPortManager::serialPortAvailable(const std::string &vendor_id,
 
 void SerialPortManager::startMonitoring()
 {
+  start_monitoring_ = true;
   monitor_thread_ = std::thread(&SerialPortManager::monitorFunc, this);
+}
+
+void SerialPortManager::stopMonitoring()
+{
+  start_monitoring_ = false;
+  monitor_thread_.join();
 }
 
 void SerialPortManager::monitorFunc()
@@ -97,7 +104,7 @@ void SerialPortManager::monitorFunc()
   udev_enumerate_unref(enumerate);
   // std::cout << "Done" << std::endl;
 
-  while (true)
+  while (start_monitoring_)
   {
     struct udev_device *device = udev_monitor_receive_device(monitor_);
     if (device)

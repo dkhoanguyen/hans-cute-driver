@@ -10,7 +10,7 @@ namespace HansCuteRobot
     {
       ServoParams joint_params;
       joint_params.id = joint_id;
-      joint_params.joint_name = std::to_string(joint_id);
+      joint_params.joint_name = "joint_" + std::to_string(joint_id);
       joint_params.raw_origin = 2048;
       joint_params.raw_min = 342;
       joint_params.raw_max = 3754;
@@ -67,9 +67,14 @@ namespace HansCuteRobot
     params.speed = max_speed;
     params.acceleration = max_acceleration;
 
-    updateServo(target_joint_id, params);
-    servo_params_[target_joint_id] = params;
-    return true;
+    if (findServo(target_joint_id))
+    {
+      updateServo(target_joint_id, params);
+      servo_params_[target_joint_id] = params;
+      return true;
+
+    }
+    return false;
   }
 
   bool HansCuteDriver::init(const std::string &port)
@@ -88,33 +93,35 @@ namespace HansCuteRobot
     {
       return false;
     }
+  }
 
+  bool HansCuteDriver::start()
+  {
     // Find servo based on params
-    for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
+    for (auto it : servo_params_)
     {
-      unsigned int joint_id = it->first;
+      unsigned int joint_id = it.first;
       if (findServo(joint_id))
       {
         // We found the current servo
         // let's load parameters
         // Angle limits
+        // std::cout << "Found servo: " << it.second.id << ": "<< servo_params_[joint_id].joint_name << std::endl;
+
         servo_comms_.setAngleLimits(
             joint_id, servo_params_[joint_id].raw_min, servo_params_[joint_id].raw_max);
         // Max speed
         servo_comms_.setSpeed(joint_id, servo_params_[joint_id].speed);
         // Max acceleration
         servo_comms_.setAcceleration(joint_id, servo_params_[joint_id].acceleration);
-      }
-    }
-    return true;
-  }
 
-  bool HansCuteDriver::start()
-  {
-    for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
-    {
-      unsigned int joint_id = it->first;
-      if (!servo_comms_.setTorqueEnable(joint_id, true))
+        // Enable torque
+        servo_comms_.setTorqueEnable(joint_id, true);
+        unsigned int position = 0;
+        servo_comms_.getPosition(it.second.id, position);
+        servo_comms_.setPosition(it.second.id, position);
+      }
+      else
       {
         return false;
       }
@@ -143,13 +150,13 @@ namespace HansCuteRobot
     {
       unsigned int raw_position = 0;
       unsigned int joint_id = it->first;
-      if (servo_comms_.getPosition(joint_id, raw_position))
+      if (!servo_comms_.getPosition(joint_id, raw_position))
       {
-        joint_states[it->second.joint_name] = 0;
+        // joint_states[it->second.joint_name] = 0;
         return false;
       }
       double position = 0.0;
-      posRawToRad(position,raw_position,it->second);
+      posRawToRad(position, raw_position, it->second);
       joint_states[it->second.joint_name] = position;
     }
     return true;
@@ -167,8 +174,8 @@ namespace HansCuteRobot
 
       // We should wrap this ping function in driver maybe
       std::vector<uint8_t> response;
-      servo_comms_.ping((uint8_t)servo_id, response);
-      if (response.size() == 0)
+      if (!servo_comms_.ping((uint8_t)servo_id, response) ||
+          response.size() == 0)
       {
         continue;
       }

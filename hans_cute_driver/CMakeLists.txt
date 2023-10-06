@@ -8,7 +8,8 @@ add_compile_options(-std=c++11)
 # # if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 # # is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  # serial_command_robot
+  roscpp
+  sensor_msgs
 )
 # find_package(yaml-cpp REQUIRED)
 find_package(PkgConfig REQUIRED)
@@ -106,7 +107,7 @@ catkin_package(
 
   INCLUDE_DIRS include
   LIBRARIES ${PROJECT_NAME}
-  CATKIN_DEPENDS roscpp
+  CATKIN_DEPENDS roscpp sensor_msgs
 
   # DEPENDS system_lib
 )
@@ -146,7 +147,10 @@ target_link_libraries(${PROJECT_NAME}
 # # Declare a C++ executable
 # # With catkin_make all packages are built within a single CMake context
 # # The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME}_node example/main.cpp)
+add_executable(${PROJECT_NAME}_node 
+# example/main.cpp
+src/hans_cute_ros_wrapper.cpp
+)
 
 # # Rename C++ executable without prefix
 # # The above recommended prefix causes long target names, the following renames the
@@ -162,7 +166,6 @@ add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catk
 target_link_libraries(${PROJECT_NAME}_node
   ${catkin_LIBRARIES}
   ${PROJECT_NAME} 
-  ${LIBUDEV_LDFLAGS}
 )
 
 # ############
@@ -201,11 +204,11 @@ target_link_libraries(${PROJECT_NAME}_node
 # )
 
 # # Mark other files for installation (e.g. launch and bag files, etc.)
-# install(FILES
-# # myfile1
-# # myfile2
-# DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
-# )
+install(DIRECTORY
+  config 
+  launch
+DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)
 
 # ############
 # # Testing ##

@@ -1,0 +1,6 @@
+<launch>
+    <node name="hans_cute_ros_driver" pkg="hans_cute_driver" type="hans_cute_driver_node"
+        output="screen">
+        <rosparam file="$(find hans_cute_driver)/config/hardware_config.yaml" command="load" />
+    </node>
+</launch>

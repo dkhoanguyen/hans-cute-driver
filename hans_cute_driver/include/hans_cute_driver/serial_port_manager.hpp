@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <vector>
 #include <thread>
+#include <atomic>
 #include <cstring>
 #include <fcntl.h>
 #include <unistd.h>
@@ -20,8 +21,10 @@ public:
 
   std::string serialPortAvailable(const std::string &vendor_id, const std::string &product_id);
   void startMonitoring();
+  void stopMonitoring();
 
 protected:
+  std::atomic<bool> start_monitoring_;
   struct udev *udev_;
   struct udev_monitor *monitor_;
   std::thread monitor_thread_;

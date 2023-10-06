@@ -27,7 +27,7 @@ namespace HansCuteRobot
 
     // Status
     bool getJointStates(std::unordered_map<std::string,double> &joint_states);
-    bool setJointPTP(const std::vector<double> &joint_pos);
+    bool setJointPTP(const std::unordered_map<std::string,double> &joint_pos);
 
   protected:
     ServoComms servo_comms_;

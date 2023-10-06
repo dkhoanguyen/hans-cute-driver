@@ -1,58 +1,60 @@
 config:
-  port:
-    vendor_id: "1a86"
-    product_id: "7523"
+  comms:
+    usb_device: "1a86:7523"
+    baudrate: 250000
 
   servo_params:
-    - name: joint_0
+    joint_0:
+      name: shoulder_pan
       origin: 2048
       min: 342
       max: 3754
       speed: 300
       acceleration: 30
-
-    - name: joint_1
+    joint_1:
+      name: shoulder_lift
       origin: 2120
       min: 853
       max: 3243
       speed: 300
       acceleration: 20
-
-    - name: joint_2
+    joint_2:
+      name: elbow_pan
       origin: 2048
       min: 342
       max: 3754
       speed: 300
       acceleration: 20
-
-    - name: joint_3
+    joint_3:
+      name: elbow_lift
       origin: 2068
       min: 853
       max: 3243
       speed: 300
       acceleration: 20
-
-    - name: joint_4
+    joint_4:
+      name: wrist_1
       origin: 2048
       min: 853
       max: 3243
       speed: 300
       acceleration: 20
-
-    - name: joint_5
+    joint_5:
+      name: wrist_2
       origin: 2048
       min: 853
       max: 3243
       speed: 300
       acceleration: 20
-
-    - name: joint_6
+    joint_6:
+      name: wrist_3
       origin: 2048
       min: 342
       max: 3754
       speed: 300
       acceleration: 20
 
-    - name: gripper
+    gripper:
+      name: gripper
       min: 190
       max: 500
