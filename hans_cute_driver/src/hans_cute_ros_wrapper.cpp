@@ -1,14 +1,14 @@
 #include "hans_cute_driver/hans_cute_ros_wrapper.hpp"
 
 HansCuteRosWrapper::HansCuteRosWrapper(ros::NodeHandle &nh)
-    : nh_(nh), start_(false),
+    : nh_(nh), start_(false), has_goal_(false),
       follow_joint_as_(nh, "/follow_joint_trajectory",
-                       boost::bind(&HansCuteRosWrapper::followJointTrajGoalCb, this, _1), false)
+                       boost::bind(&HansCuteRosWrapper::followJointTrajGoalCb, this, _1),
+                       boost::bind(&HansCuteRosWrapper::followJointTrajCancelCb, this, _1),
+                       false)
 {
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
   state_thread_ = nh_.createTimer(ros::Duration(0.05), &HansCuteRosWrapper::stateThread, this);
-
-  follow_joint_as_.registerGoalCallback()
 }
 
 HansCuteRosWrapper::~HansCuteRosWrapper()
@@ -18,6 +18,7 @@ HansCuteRosWrapper::~HansCuteRosWrapper()
 void HansCuteRosWrapper::init()
 {
   // Init robot
+  // SerialPortManager should be a rosnode
   SerialPortManager manager;
   manager.startMonitoring();
   while (manager.serialPortAvailable("0403", "6001").empty())
@@ -97,12 +98,16 @@ void HansCuteRosWrapper::start()
 {
   start_ = true;
   driver_.start();
+  ROS_INFO("Robot driver started")
+  follow_joint_as_.start();
+  ROS_INFO("follow_joint_trajectory action server started");
 }
 
 void HansCuteRosWrapper::halt()
 {
   start_ = false;
   driver_.halt();
+  ROS_INFO("Robot driver halted")
 }
 
 void HansCuteRosWrapper::stateThread(const ros::TimerEvent &event)
@@ -111,15 +116,20 @@ void HansCuteRosWrapper::stateThread(const ros::TimerEvent &event)
   std::unordered_map<std::string, double> joint_states;
   {
     std::unique_lock<std::mutex> lck(driver_mtx_);
-    driver_.getJointStates(joint_states);
+    if (!driver_.getJointStates(joint_states))
+    {
+      ROS_ERROR("Unable to query joint states");
+      return;
+    }
   }
   std::vector<std::string> joint_names;
   std::vector<double> joint_positions;
+  std::vector<double> joint_velocities;
   for (const auto &joint_state : joint_states)
   {
     joint_names.push_back(joint_state.first);
     joint_positions.push_back(joint_state.second);
-    // std::cout << joint_state.first << ": " << joint_state.second << std::endl;
+    joint_velocities.push_back(0.0);
   }
 
   joint_state_msg.name = joint_names;
@@ -131,9 +141,52 @@ void HansCuteRosWrapper::stateThread(const ros::TimerEvent &event)
 void HansCuteRosWrapper::followJointTrajGoalCb(
     const actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle &goal_handle)
 {
+  ROS_INFO_STREAM("Hans ROS Driver: goal received");
 }
 
-int main(int argc, char **argv)
+void HansCuteRosWrapper::followJointTrajCancelCb(
+    const actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle &goal_handle)
+{
+}
+
+// Utils
+bool HansCuteRosWrapper::hasPoints(
+    const trajectory_msgs::JointTrajectory &traj)
+{
+  if (traj.points.size() == 0)
+    return false;
+  for (auto &point : traj.points)
+  {
+    if (point.positions.size() != traj.joint_names.size() ||
+        point.velocities.size() != traj.joint_names.size())
+      return false;
+  }
+  return true;
+}
+
+bool HansCuteRosWrapper::isStartPositionsMatch(
+    const trajectory_msgs::JointTrajectory &traj, const double &err) const
+{
+  std::unordered_map<std::string, double> joint_states;
+  {
+    std::unique_lock<std::mutex> lck(driver_mtx_);
+    if (!driver_.getJointStates(joint_states))
+    {
+      return false;
+    }
+  }
+  for (size_t i = 0; i < traj.points[0].positions.size(); ++i)
+  {
+    if (fabs(traj.points[0].positions[i] - q_act[i]) > err)
+      return false;
+  }
+  return true;
+}
+
+bool HansCuteRosWrapper::
+
+    int
+    main(int argc, char **argv)
 {
   ros::init(argc, argv, "hans_cute_ros_driver");
   ros::NodeHandle nh;

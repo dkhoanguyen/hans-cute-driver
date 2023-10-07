@@ -72,7 +72,6 @@ namespace HansCuteRobot
       updateServo(target_joint_id, params);
       servo_params_[target_joint_id] = params;
       return true;
-
     }
     return false;
   }
@@ -106,7 +105,6 @@ namespace HansCuteRobot
         // We found the current servo
         // let's load parameters
         // Angle limits
-        // std::cout << "Found servo: " << it.second.id << ": "<< servo_params_[joint_id].joint_name << std::endl;
         servo_comms_.setAngleLimits(
             joint_id, servo_params_[joint_id].raw_min, servo_params_[joint_id].raw_max);
         // Max speed
@@ -115,7 +113,10 @@ namespace HansCuteRobot
         servo_comms_.setAcceleration(joint_id, servo_params_[joint_id].acceleration);
 
         // Enable torque
-        servo_comms_.setTorqueEnable(joint_id, true);
+        if (!servo_comms_.setTorqueEnable(joint_id, true))
+        {
+          return false;
+        }
         unsigned int position = 0;
         servo_comms_.getPosition(it.second.id, position);
         servo_comms_.setPosition(it.second.id, position);
@@ -141,6 +142,14 @@ namespace HansCuteRobot
     return true;
   }
 
+  bool HansCuteDriver::isHalted()
+  {
+    std::vector<uint8_t> response;
+    bool enabled = falsed;
+    servo_comms.getTorqueEnable(response, enabled);
+    return enabled;
+  }
+
   bool HansCuteDriver::getJointStates(
       std::unordered_map<std::string, double> &joint_states)
   {
@@ -149,9 +158,9 @@ namespace HansCuteRobot
     {
       unsigned int raw_position = 0;
       unsigned int joint_id = it->first;
+      joint_states[it->second.joint_name] = 0.0;
       if (!servo_comms_.getPosition(joint_id, raw_position))
       {
-        // joint_states[it->second.joint_name] = 0;
         return false;
       }
       double position = 0.0;
@@ -210,6 +219,28 @@ namespace HansCuteRobot
     output_servo_param.radians_second_per_encoder_tick = model.rpm_per_tick * RPM_TO_RADSEC;
 
     return true;
+  }
+
+  // Status
+
+  // Control
+  bool HansCuteDriver::setJointPTP(const std::unordered_map<std::string, double> &joint_pos,
+                                   const double &vel_per,
+                                   const double &accel_per)
+  {
+    unsigned int vel = 1023 * vel_per;
+    unsigned int accel = 1023 * accel_per;
+
+    for ()
+    {
+      unsigned int joint_id = it->first;
+      // Max speed
+      servo_comms_.setSpeed(joint_id, vel);
+      // Max acceleration
+      servo_comms_.setAcceleration(joint_id, accel);
+      // Send command
+      servo_comms_.setPosition(joint_id, )
+    }
   }
 
   void HansCuteDriver::posRadToRaw(

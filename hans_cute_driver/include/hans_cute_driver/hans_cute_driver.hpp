@@ -25,9 +25,13 @@ namespace HansCuteRobot
     bool start();
     bool halt();
 
-    // Status
-    bool getJointStates(std::unordered_map<std::string,double> &joint_states);
-    bool setJointPTP(const std::unordered_map<std::string,double> &joint_pos);
+    // Status check
+    bool isHalted();
+    bool getJointStates(std::unordered_map<std::string, double> &joint_states);
+
+    // Control
+    bool setJointTrajectory(const HansJointTrajectory &traj);
+    bool setJointPTP(const std::unordered_map<std::string, double> &joint_pos);
 
   protected:
     ServoComms servo_comms_;
