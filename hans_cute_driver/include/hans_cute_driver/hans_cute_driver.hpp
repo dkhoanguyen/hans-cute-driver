@@ -30,8 +30,13 @@ namespace HansCuteRobot
     bool getJointStates(std::unordered_map<std::string, double> &joint_states);
 
     // Control
-    bool setJointTrajectory(const HansJointTrajectory &traj);
-    bool setJointPTP(const std::unordered_map<std::string, double> &joint_pos);
+    bool setJointPTP(const std::unordered_map<std::string, double> &joint_pos,
+                     const double &vel_per,
+                     const double &accel_per);
+    // Terminology borrowed from the TM Robots
+    // PVT - Point Velocity Time
+    bool setJointPVT(const std::unordered_map<std::string, double> &joint_pos,
+                     const std::unordered_map<std::string, double> &joint_vel);
 
   protected:
     ServoComms servo_comms_;

@@ -5,28 +5,28 @@ config:
 
   servo_params:
     joint_0:
-      name: shoulder_pan
+      name: shoulder_1
       origin: 2048
       min: 342
       max: 3754
       speed: 300
       acceleration: 30
     joint_1:
-      name: shoulder_lift
+      name: shoulder_2
       origin: 2120
       min: 853
       max: 3243
       speed: 300
       acceleration: 20
     joint_2:
-      name: elbow_pan
+      name: elbow_1
       origin: 2048
       min: 342
       max: 3754
       speed: 300
       acceleration: 20
     joint_3:
-      name: elbow_lift
+      name: elbow_2
       origin: 2068
       min: 853
       max: 3243

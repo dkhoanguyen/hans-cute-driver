@@ -145,9 +145,16 @@ namespace HansCuteRobot
   bool HansCuteDriver::isHalted()
   {
     std::vector<uint8_t> response;
-    bool enabled = falsed;
-    servo_comms.getTorqueEnable(response, enabled);
-    return enabled;
+    for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
+    {
+      unsigned int joint_id = it->first;
+      bool enabled = false;
+      if (!servo_comms_.getTorqueEnabled(joint_id, enabled) || enabled)
+      {
+        return false;
+      }
+    }
+    return true;
   }
 
   bool HansCuteDriver::getJointStates(
@@ -230,17 +237,79 @@ namespace HansCuteRobot
   {
     unsigned int vel = 1023 * vel_per;
     unsigned int accel = 1023 * accel_per;
-
-    for ()
+    for (auto joint_pos_it = joint_pos.begin(); joint_pos_it != joint_pos.end(); ++joint_pos_it)
     {
-      unsigned int joint_id = it->first;
+      std::string joint_name = joint_pos_it->first;
+      // Find joint id based on name
+      unsigned int joint_id = -1;
+      for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
+      {
+        if (strcmp(joint_name.c_str(), it->second.joint_name.c_str()) == 0)
+        {
+          joint_id = it->first;
+          break;
+        }
+      }
       // Max speed
       servo_comms_.setSpeed(joint_id, vel);
       // Max acceleration
       servo_comms_.setAcceleration(joint_id, accel);
       // Send command
-      servo_comms_.setPosition(joint_id, )
+      double position = joint_pos.at(joint_name);
+      unsigned int raw_position = 0;
+      posRadToRaw(joint_pos.at(joint_name), raw_position, servo_params_.at(joint_id));
+      // This should be updated to sync write to ensure all motors receive commands at the same time
+      if (!servo_comms_.setPosition(joint_id, raw_position))
+      {
+        return false;
+      }
     }
+    return true;
+  }
+
+  bool HansCuteDriver::setJointPVT(const std::unordered_map<std::string, double> &joint_pos,
+                                   const std::unordered_map<std::string, double> &joint_vel)
+  {
+    // New temp joint id -> position map to ensure all joints move at roughly the same tim
+    std::unordered_map<unsigned int, unsigned int> raw_joint_pos;
+    // Configure steps
+    for (auto joint_pos_it = joint_pos.begin(); joint_pos_it != joint_pos.end(); ++joint_pos_it)
+    {
+      std::string joint_name = joint_pos_it->first;
+      // Find joint id based on name
+      unsigned int joint_id = -1;
+      for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
+      {
+        if (strcmp(joint_name.c_str(), it->second.joint_name.c_str()) == 0)
+        {
+          joint_id = it->first;
+          break;
+        }
+      }
+      double goal_position_rad = joint_pos.at(joint_name);
+      unsigned int goal_position_raw = 0;
+      posRadToRaw(goal_position_rad, goal_position_raw, servo_params_[joint_id]);
+
+      // Obtain raw_velocity
+      double goal_vel_rad = joint_vel.at(joint_name);
+      unsigned int goal_vel_raw = 0;
+      spdRadToRaw(goal_vel_rad, goal_vel_raw, servo_params_.at(joint_id));
+      servo_comms_.setSpeed(joint_id, goal_vel_raw);
+      // Set max accel
+      servo_comms_.setAcceleration(joint_id, 254);
+      // Send command
+      raw_joint_pos[joint_id] = goal_position_raw;
+    }
+    for (auto raw_joint : raw_joint_pos)
+    {
+      // This should be updated to sync write to ensure all motors receive commands at the same time
+      if (!servo_comms_.setPosition(raw_joint.first, raw_joint.second))
+      {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   void HansCuteDriver::posRadToRaw(
