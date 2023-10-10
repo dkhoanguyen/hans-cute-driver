@@ -1,312 +1,338 @@
-#include "hans_cute_driver/hans_cute_driver.h"
+#include "hans_cute_driver/hans_cute_driver.hpp"
 
-const SamplePacket HansCuteRobot::ServoDriver::DXL_PACKET{std::vector<uint8_t>({0xFF, 0xFF}), 2, 3, 4};
-
-HansCuteRobot::ServoDriver::ServoDriver()
-    : HansCuteRobot::ServoSerialComms()
+namespace HansCuteRobot
 {
-  // Update paket format at initialisation
-  setSamplePacket(HansCuteRobot::ServoDriver::DXL_PACKET);
-}
-
-HansCuteRobot::ServoDriver::~ServoDriver()
-{
-  
-}
-
-//====================================================================//
-// These function modify EEPROM data which persists after power cycle //
-//====================================================================//
-
-// These can be left until the end as they are relatively unimportant
-bool HansCuteRobot::ServoDriver::setID(const uint8_t &old_id, const uint8_t &new_id)
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setBaudrate(const uint8_t &servo_id, const long &baudrate)
-{
-  return true;
-}
-
-bool HansCuteRobot::ServoDriver::setReturnDelayTime(const uint8_t &servo_id, const unsigned int &delay_time)
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setAngleLimits(const uint8_t &servo_id, const unsigned int &min_limit,
-                                                const unsigned int &max_limit)
-{
-  std::vector<uint8_t> raw_limit = HansCuteRobot::AngleLimits::getRawData(min_limit, max_limit);
-  std::vector<uint8_t> returned_data;
-  unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::CW_ANGLE_LIMIT_L, raw_limit, returned_data, timestamp);
-  return true;
-}
-
-bool HansCuteRobot::ServoDriver::setVoltageLimits(const uint8_t &servo_id, const VoltageLimits &voltage_limits)
-{
-  return true;
-}
-
-bool HansCuteRobot::ServoDriver::setMaxTorque(const uint8_t &servo_id, const unsigned int &max_torque)
-{
-  std::vector<uint8_t> raw_limit = HansCuteRobot::TorqueLimit::getRawData(max_torque);
-  std::vector<uint8_t> returned_data;
-  unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::MAX_TORQUE_L, raw_limit, returned_data, timestamp);
-  return true;
-}
-
-//===============================================================//
-// These functions can send multiple commands to a single servo  //
-//===============================================================//
-bool HansCuteRobot::ServoDriver::setTorqueEnable(const uint8_t &servo_id, const bool &enabled)
-{
-  std::vector<uint8_t> data({(uint8_t)enabled});
-  std::vector<uint8_t> returned_data;
-  unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::TORQUE_ENABLE, data, returned_data, timestamp);
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setComplianceMargin()
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setComplianceSlope()
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setDGain()
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setIGain()
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setPGain()
-{
-  return true;
-}
-
-bool HansCuteRobot::ServoDriver::setAcceleration(const uint8_t &servo_id, const unsigned int &acceleration)
-{
-  std::vector<uint8_t> raw_data = HansCuteRobot::ServoAcceleration::getRawData(acceleration);
-  std::vector<uint8_t> returned_data;
-  unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::GOAL_ACCELERATION, raw_data, returned_data, timestamp);
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setPosition(const uint8_t &servo_id, const unsigned int &position)
-{
-  std::vector<uint8_t> raw_postion = HansCuteRobot::ServoPosition::getRawData(position);
-  std::vector<uint8_t> returned_data;
-  unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::GOAL_POSITION_L, raw_postion, returned_data, timestamp);
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setSpeed(const uint8_t &servo_id, const unsigned int &speed)
-{
-  std::vector<uint8_t> raw_speed = HansCuteRobot::ServoSpeed::getRawData(speed);
-  std::vector<uint8_t> returned_data;
-  unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::GOAL_SPEED_L, raw_speed, returned_data, timestamp);
-  return true;
-}
-
-bool HansCuteRobot::ServoDriver::setTorqueLimit(const uint8_t &servo_id, const unsigned int &torque_limit)
-{
-  std::vector<uint8_t> raw_torque = HansCuteRobot::TorqueLimit::getRawData(torque_limit);
-  std::vector<uint8_t> returned_data;
-  unsigned long timestamp;
-  write(servo_id, (uint8_t)ControlTableConstant::TORQUE_LIMIT_L, raw_torque, returned_data, timestamp);
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setGoalTorque()
-{
-  return true;
-}
-
-bool HansCuteRobot::ServoDriver::setPositionAndSpeed()
-{
-  return true;
-}
-
-//===============================================================//
-// These functions can send multiple commands to multiple servos //
-//===============================================================//
-
-bool HansCuteRobot::ServoDriver::setMultiTorqueEnabled()
-{
-  return true;
-}
-
-// Range is between 0 -> 255
-bool HansCuteRobot::ServoDriver::setMultiComplianceMargin()
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setMultiComplianceSlope()
-{
-  return true;
-}
-
-// Position value ranges from 0 -> 4095 (0xFFF), unit is 0.088 degree
-bool HansCuteRobot::ServoDriver::setMultiPosition(const std::vector<unsigned int> &servo_ids,
-                                                  const std::vector<unsigned int> &positions)
-{
-  
-}
-bool HansCuteRobot::ServoDriver::setMultiSpeed(const std::vector<unsigned int> &servo_ids,
-                                               const std::vector<unsigned int> &speeds)
-{
-  
-}
-
-bool HansCuteRobot::ServoDriver::setMultiTorqueLimit(const std::vector<unsigned int> &servo_ids,
-                                                     const std::vector<double> &torque_limits)
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::setMultiPositionAndSpeed(const std::vector<unsigned int> &servo_ids,
-                                                          const std::vector<unsigned int> &positions,
-                                                          const std::vector<unsigned int> &speeds)
-{
-  std::vector<std::vector<uint8_t>> data_lists;
-  for (int indx = 0; indx < servo_ids.size(); indx++)
+  HansCuteDriver::HansCuteDriver()
   {
-    std::vector<uint8_t> data;
-    data.push_back((uint8_t)servo_ids.at(indx));
-    std::vector<uint8_t> position = HansCuteRobot::ServoPosition::getRawData(positions.at(indx));
-    data.insert(data.end(), position.begin(), position.end());
-    std::vector<uint8_t> speed = HansCuteRobot::ServoSpeed::getRawData(speeds.at(indx));
-    data.insert(data.end(), speed.begin(), speed.end());
-    data_lists.push_back(data);
+    // Initialise Servo Params with default values
+    // Assuming the hans doesn't change
+    for (unsigned int joint_id = 0; joint_id <= 6; joint_id++)
+    {
+      ServoParams joint_params;
+      joint_params.id = joint_id;
+      joint_params.joint_name = "joint_" + std::to_string(joint_id);
+      joint_params.raw_origin = 2048;
+      joint_params.raw_min = 342;
+      joint_params.raw_max = 3754;
+      joint_params.speed = 300;
+      joint_params.acceleration = 20;
+
+      servo_params_[joint_id] = joint_params;
+    }
   }
-  syncWrite((uint8_t)ControlTableConstant::GOAL_POSITION_L, data_lists);
-  return true;
-}
 
-//===============================//
-// Servo status access functions //
-//===============================//
-
-bool HansCuteRobot::ServoDriver::getModelNumber(const int &servo_id, unsigned int &model_number)
-{
-  std::vector<uint8_t> response;
-  unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::MODEL_NUMBER_L, 2, response, timestamp))
+  HansCuteDriver::~HansCuteDriver()
   {
-    return false;
+    // Try to close port 5 times
+    for (unsigned int num = 0; num < 5; num++)
+    {
+      if (servo_comms_.close())
+      {
+        break;
+      }
+    }
   }
-  model_number = HansCuteRobot::ModelNumber::getData(response);
-  return true;
-}
-bool HansCuteRobot::ServoDriver::getFirmwareVersion()
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::getReturnDelayTime()
-{
-  return true;
-}
 
-bool HansCuteRobot::ServoDriver::getAngleLimits(const int &servo_id, HansCuteRobot::AngleLimits &angle_limit)
-{
-  std::vector<uint8_t> response;
-  unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::CW_ANGLE_LIMIT_L, 4, response, timestamp))
+  bool HansCuteDriver::setJointLimits(
+      const std::string &current_joint_name,
+      const std::string &new_joint_name,
+      const unsigned int &raw_min,
+      const unsigned int &raw_max,
+      const unsigned int &raw_origin,
+      const unsigned int &max_speed,
+      const unsigned int &max_acceleration)
   {
-    return false;
-  }
-  angle_limit = HansCuteRobot::AngleLimits::getData(response);
-  return true;
-}
+    // Find the name and update the param
+    unsigned int target_joint_id = -1;
+    for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
+    {
+      if (strcmp(current_joint_name.c_str(), it->second.joint_name.c_str()) == 0)
+      {
+        target_joint_id = it->first;
+        break;
+      }
+    }
 
-bool HansCuteRobot::ServoDriver::getTorqueEnabled(const int &servo_id, bool &enabled)
-{
-  std::vector<uint8_t> response;
-  unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::TORQUE_ENABLE, 1, response, timestamp))
-  {
-    return false;
-  }
-  return true;
-}
+    if (target_joint_id == -1)
+    {
+      return false;
+    }
 
-bool HansCuteRobot::ServoDriver::getMaxTorque(const int &servo_id, unsigned int &torque)
-{
-  std::vector<uint8_t> response;
-  unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::MAX_TORQUE_L, 2, response, timestamp))
-  {
-    return false;
-  }
-  torque = HansCuteRobot::TorqueLimit::getData(response);
-  return true;
-}
+    ServoParams params;
+    params.joint_name = new_joint_name;
+    params.id = target_joint_id;
+    params.raw_min = raw_min;
+    params.raw_max = raw_max;
+    params.raw_origin = raw_origin;
+    params.speed = max_speed;
+    params.acceleration = max_acceleration;
 
-bool HansCuteRobot::ServoDriver::getVoltageLimits()
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::getPosition(const int &servo_id, unsigned int &position)
-{
-  std::vector<uint8_t> response;
-  unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::PRESENT_POSITION_L, 2, response, timestamp))
-  {
-    return false;
-  }
-  position = (unsigned int)HansCuteRobot::ServoPosition::getData(response);
-  return true;
-}
-bool HansCuteRobot::ServoDriver::getSpeed(const int &servo_id, unsigned int &speed)
-{
-  std::vector<uint8_t> response;
-  unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::GOAL_SPEED_L, 2, response, timestamp))
-  {
-    return false;
-  }
-  speed = (unsigned int)HansCuteRobot::ServoSpeed::getData(response);
-  return true;
-}
-
-bool HansCuteRobot::ServoDriver::getAcceleration(const int &servo_id, unsigned int &acceleration)
-{
-  return true;
-}
-
-bool HansCuteRobot::ServoDriver::getVoltage()
-{
-  return true;
-}
-bool HansCuteRobot::ServoDriver::getCurrent()
-{
-  return true;
-}
-
-bool HansCuteRobot::ServoDriver::getLock(const int &servo_id, bool &lock)
-{
-  std::vector<uint8_t> response;
-  unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::LOCK, 1, response, timestamp))
-  {
-    return false;
-  }
-  lock = (bool)response.at(5);
-  return true;
-}
-
-bool HansCuteRobot::ServoDriver::getFeedback(const int &servo_id, ServoFeedback &feedback)
-{
-  std::vector<uint8_t> response;
-  unsigned long timestamp = 0;
-  if (!read((uint8_t)servo_id, (uint8_t)ControlTableConstant::GOAL_POSITION_L, 17, response, timestamp))
-  {
+    if (findServo(target_joint_id))
+    {
+      updateServo(target_joint_id, params);
+      servo_params_[target_joint_id] = params;
+      return true;
+    }
     return false;
   }
 
-  feedback = ServoFeedback::getData((uint8_t)servo_id, response, timestamp);
-  return true;
+  bool HansCuteDriver::init(const std::string &port)
+  {
+    // Try to open port 5 times
+    bool port_opened = false;
+    for (unsigned int num = 0; num < 5; num++)
+    {
+      if (servo_comms_.open(port))
+      {
+        port_opened = true;
+        break;
+      }
+    }
+    if (!port_opened)
+    {
+      return false;
+    }
+  }
+
+  bool HansCuteDriver::start()
+  {
+    // Find servo based on params
+    for (auto it : servo_params_)
+    {
+      unsigned int joint_id = it.first;
+      if (findServo(joint_id))
+      {
+        // We found the current servo
+        // let's load parameters
+        // Angle limits
+        servo_comms_.setAngleLimits(
+            joint_id, servo_params_[joint_id].raw_min, servo_params_[joint_id].raw_max);
+        // Max speed
+        servo_comms_.setSpeed(joint_id, servo_params_[joint_id].speed);
+        // Max acceleration
+        servo_comms_.setAcceleration(joint_id, servo_params_[joint_id].acceleration);
+
+        // Enable torque
+        if (!servo_comms_.setTorqueEnable(joint_id, true))
+        {
+          return false;
+        }
+        unsigned int position = 0;
+        servo_comms_.getPosition(it.second.id, position);
+        servo_comms_.setPosition(it.second.id, position);
+      }
+      else
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool HansCuteDriver::halt()
+  {
+    for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
+    {
+      unsigned int joint_id = it->first;
+      if (!servo_comms_.setTorqueEnable(joint_id, false))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool HansCuteDriver::isHalted()
+  {
+    std::vector<uint8_t> response;
+    for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
+    {
+      unsigned int joint_id = it->first;
+      bool enabled = false;
+      if (!servo_comms_.getTorqueEnabled(joint_id, enabled) || enabled)
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool HansCuteDriver::getJointStates(
+      std::unordered_map<std::string, double> &joint_states)
+  {
+    joint_states.clear();
+    for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
+    {
+      unsigned int raw_position = 0;
+      unsigned int joint_id = it->first;
+      joint_states[it->second.joint_name] = 0.0;
+      if (!servo_comms_.getPosition(joint_id, raw_position))
+      {
+        return false;
+      }
+      double position = 0.0;
+      posRawToRad(position, raw_position, it->second);
+      joint_states[it->second.joint_name] = position;
+    }
+    return true;
+  }
+
+  bool HansCuteDriver::findServo(const unsigned int &servo_id)
+  {
+    unsigned int num_retries = 5;
+    for (int ping_try = 0; ping_try < num_retries; ping_try++)
+    {
+      if (ping_try == num_retries)
+      {
+        return false;
+      }
+
+      // We should wrap this ping function in driver maybe
+      std::vector<uint8_t> response;
+      if (!servo_comms_.ping((uint8_t)servo_id, response) ||
+          response.size() == 0)
+      {
+        continue;
+      }
+      break;
+    }
+    return true;
+  }
+
+  bool HansCuteDriver::updateServo(const unsigned int &servo_id,
+                                   ServoParams &output_servo_param)
+  {
+    unsigned int model_number = 0;
+    if (!servo_comms_.getModelNumber(servo_id, model_number))
+    {
+      return false;
+    }
+    output_servo_param.model_number = model_number;
+
+    ServoModel model = ModelToParams.at(model_number);
+
+    double range_radians = model.range_degrees * (M_PI / 180);
+    double rad_per_enc_tick = range_radians / model.encoder_resolution;
+    double enc_tick_per_rad = model.encoder_resolution / range_radians;
+
+    // Radians
+    output_servo_param.min = (output_servo_param.raw_min - output_servo_param.raw_origin) * rad_per_enc_tick;
+    output_servo_param.max = (output_servo_param.raw_max - output_servo_param.raw_origin) * rad_per_enc_tick;
+
+    output_servo_param.rad_per_enc_tick = rad_per_enc_tick;
+    output_servo_param.enc_tick_per_rad = enc_tick_per_rad;
+
+    output_servo_param.rpm_per_tick = model.rpm_per_tick;
+    output_servo_param.radians_second_per_encoder_tick = model.rpm_per_tick * RPM_TO_RADSEC;
+
+    return true;
+  }
+
+  // Status
+
+  // Control
+  bool HansCuteDriver::setJointPTP(const std::unordered_map<std::string, double> &joint_pos,
+                                   const double &vel_per,
+                                   const double &accel_per)
+  {
+    unsigned int vel = 1023 * vel_per;
+    unsigned int accel = 1023 * accel_per;
+    for (auto joint_pos_it = joint_pos.begin(); joint_pos_it != joint_pos.end(); ++joint_pos_it)
+    {
+      std::string joint_name = joint_pos_it->first;
+      // Find joint id based on name
+      unsigned int joint_id = -1;
+      for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
+      {
+        if (strcmp(joint_name.c_str(), it->second.joint_name.c_str()) == 0)
+        {
+          joint_id = it->first;
+          break;
+        }
+      }
+      // Max speed
+      servo_comms_.setSpeed(joint_id, vel);
+      // Max acceleration
+      servo_comms_.setAcceleration(joint_id, accel);
+      // Send command
+      double position = joint_pos.at(joint_name);
+      unsigned int raw_position = 0;
+      posRadToRaw(joint_pos.at(joint_name), raw_position, servo_params_.at(joint_id));
+      // This should be updated to sync write to ensure all motors receive commands at the same time
+      if (!servo_comms_.setPosition(joint_id, raw_position))
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool HansCuteDriver::setJointPVT(const std::unordered_map<std::string, double> &joint_pos,
+                                   const std::unordered_map<std::string, double> &joint_vel)
+  {
+    // New temp joint id -> position map to ensure all joints move at roughly the same tim
+    std::unordered_map<unsigned int, unsigned int> raw_joint_pos;
+    // Configure steps
+    for (auto joint_pos_it = joint_pos.begin(); joint_pos_it != joint_pos.end(); ++joint_pos_it)
+    {
+      std::string joint_name = joint_pos_it->first;
+      // Find joint id based on name
+      unsigned int joint_id = -1;
+      for (auto it = servo_params_.begin(); it != servo_params_.end(); ++it)
+      {
+        if (strcmp(joint_name.c_str(), it->second.joint_name.c_str()) == 0)
+        {
+          joint_id = it->first;
+          break;
+        }
+      }
+      double goal_position_rad = joint_pos.at(joint_name);
+      unsigned int goal_position_raw = 0;
+      posRadToRaw(goal_position_rad, goal_position_raw, servo_params_[joint_id]);
+
+      // Obtain raw_velocity
+      double goal_vel_rad = joint_vel.at(joint_name);
+      unsigned int goal_vel_raw = 0;
+      spdRadToRaw(goal_vel_rad, goal_vel_raw, servo_params_.at(joint_id));
+      servo_comms_.setSpeed(joint_id, goal_vel_raw);
+      // Set max accel
+      servo_comms_.setAcceleration(joint_id, 254);
+      // Send command
+      raw_joint_pos[joint_id] = goal_position_raw;
+    }
+    for (auto raw_joint : raw_joint_pos)
+    {
+      // This should be updated to sync write to ensure all motors receive commands at the same time
+      if (!servo_comms_.setPosition(raw_joint.first, raw_joint.second))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  void HansCuteDriver::posRadToRaw(
+      const double &rad, unsigned int &raw, const ServoParams &params)
+  {
+    raw = (unsigned int)round(params.raw_origin + (rad * params.enc_tick_per_rad));
+  }
+
+  void HansCuteDriver::posRawToRad(
+      double &rad, const unsigned int &raw, const ServoParams &params)
+  {
+    rad = ((int)(raw - params.raw_origin)) * params.rad_per_enc_tick;
+  }
+
+  void HansCuteDriver::spdRadToRaw(
+      const double &rad, unsigned int &raw, const ServoParams &params)
+  {
+    raw = (unsigned int)round(rad / params.radians_second_per_encoder_tick);
+  }
+
+  void HansCuteDriver::spdRawToRad(
+      double &rad, const unsigned int &raw, const ServoParams &params)
+  {
+    rad = raw * params.radians_second_per_encoder_tick;
+  }
 }

@@ -6,8 +6,8 @@
 // Links: https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#software-flow-control-ixoff-ixon-ixany
 // https://github.com/gbmhunter/CppLinuxSerial
 
-#ifndef _CUSTOM_SERIAL_PORT_H_
-#define _CUSTOM_SERIAL_PORT_H_
+#ifndef HANS_CUTE_DRIVER__SERIAL_PORT_HPP_
+#define HANS_CUTE_DRIVER__SERIAL_PORT_HPP_
 
 #include <string>
 #include <fstream>  // For file I/O (reading/writing to COM port)
@@ -37,8 +37,6 @@
 #include <asm/ioctls.h>
 #include <asm/termbits.h>
 
-#include "serial_port_interface.h"
-
 enum class NumDataBits
 {
   FIVE,
@@ -66,11 +64,10 @@ enum class SerialError
   READ_ERROR,
 };
 
-class SerialPort : public SerialPortInterface
+class SerialPort
 {
 public:
   SerialPort(const std::string& port, const speed_t& baud_rate, int32_t timeout);
-  SerialPort();
   virtual ~SerialPort();
 
   // Setters
@@ -82,9 +79,8 @@ public:
   void setTimeout(const int32_t& timeout);
 
   //
-  void openPort();
-  void closePort();
-
+  bool openPort();
+  bool closePort();
   bool isOpen() const;
 
   void write(const std::vector<uint8_t>& data);
@@ -95,10 +91,7 @@ public:
 
 private:
   void configure();
-
-  void setReadDataStream(const std::vector<uint8_t> &data) {};
-  void getWriteDataStream(std::vector<uint8_t> &data) {};
-
+  
   std::string port_;
   speed_t baud_rate_;
 
