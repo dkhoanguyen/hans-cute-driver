@@ -28,6 +28,7 @@ namespace HansCuteRobot
     // Status check
     bool isHalted();
     bool getJointStates(std::unordered_map<std::string, double> &joint_states);
+    bool getJointNames(std::vector<std::string> &names);
 
     // Control
     bool setJointPTP(const std::unordered_map<std::string, double> &joint_pos,

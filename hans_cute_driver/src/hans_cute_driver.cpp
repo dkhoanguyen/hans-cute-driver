@@ -230,6 +230,16 @@ namespace HansCuteRobot
 
   // Status
 
+  bool HansCuteDriver::getJointNames(std::vector<std::string> &joint_names)
+  {
+    joint_names.clear();
+    for(auto param : servo_params_)
+    {
+      joint_names.push_back(param.second.joint_name);
+    }
+    return true;
+  }
+
   // Control
   bool HansCuteDriver::setJointPTP(const std::unordered_map<std::string, double> &joint_pos,
                                    const double &vel_per,
