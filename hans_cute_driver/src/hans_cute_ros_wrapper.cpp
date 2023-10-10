@@ -9,7 +9,7 @@ HansCuteRosWrapper::HansCuteRosWrapper(ros::NodeHandle &nh)
 {
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
   state_thread_ = nh_.createTimer(ros::Duration(0.05), &HansCuteRosWrapper::stateThread, this);
-  feedback_pub_ = nh_.advertise<control_msgs::FollowJointTrajectoryFeedback>("/follow_joint_trajectory/feedback", 1);
+  // feedback_pub_ = nh_.advertise<control_msgs::FollowJointTrajectoryFeedback>("/follow_joint_trajectory/feedback", 1);
 }
 
 HansCuteRosWrapper::~HansCuteRosWrapper()
@@ -189,13 +189,18 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
   double total_duration = traj.points.at(traj.points.size() - 1).time_from_start.toSec();
   ros::Time start_time = ros::Time::now();
 
-  bool traj_sent = false;
   // Constructing a map name -> joint
   std::unordered_map<std::string, double> target_joint_goals;
   std::unordered_map<std::string, double> target_joint_vels;
 
   while (ros::ok() && current_indx < traj.points.size())
   {
+    // Check if goal is still valid
+    if (goal_handle_.getGoalStatus().status != actionlib_msgs::GoalStatus::ACTIVE)
+    {
+      return;
+    }
+
     trajectory_msgs::JointTrajectoryPoint point = traj.points.at(current_indx);
     double exec_time = point.time_from_start.toSec();
     // Obtain current position first
@@ -207,7 +212,7 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
         ROS_ERROR("Unable to query joint states. Reusing the previously available one");
       }
     }
-    constructNameJointMapping(joint_names, point.positions, target_joint_goals);
+
     // Calculate the velocity required for each joint
     for (std::string joint_name : joint_names)
     {
@@ -227,6 +232,13 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
 
     while (ros::ok())
     {
+      // Check if goal is still valid
+      if (goal_handle_.getGoalStatus().status != actionlib_msgs::GoalStatus::ACTIVE)
+      {
+        ROS_INFO("Hans ROS Driver: Current goal handle is not active. Stop execution");
+        return;
+      }
+
       // Calculate the elapsed time
       ros::Time current_time = ros::Time::now();
       double elapsed_time = (current_time - start_time).toSec();
@@ -257,15 +269,15 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
       {
         feedback.actual.positions.push_back(joint_state.second);
       }
-      feedback_pub_.publish(feedback);
+      goal_handle_.publishFeedback(feedback);
 
       // Check if at target
       bool at_target = isAtGoal(current_joint_states, target_joint_goals, 0.1);
       if (at_target)
       {
-        traj_sent = false;
         // Robot at target, move to the next point
         current_indx++;
+        break;
       }
     }
   }
@@ -322,7 +334,7 @@ bool HansCuteRosWrapper::cancelCurrentGoal()
     std::unique_lock<std::mutex> lck(driver_mtx_);
     if (!driver_.getJointStates(joint_states))
     {
-      ROS_ERROR_NAMED("Hans ROS Driver", "Unable to query joint states to cancel current goal");
+      ROS_ERROR("Hans ROS Driver: Unable to query joint states to cancel current goal");
       return false;
     }
     else
@@ -330,7 +342,7 @@ bool HansCuteRosWrapper::cancelCurrentGoal()
       // Only cancel goal if we can query joint state
       if (!driver_.setJointPTP(joint_states, 0.2, 0.2))
       {
-        ROS_ERROR_NAMED("Hans ROS Driver", "Unable to cancel current goal");
+        ROS_ERROR("Hans ROS Driver: Unable to cancel current goal");
         return false;
       }
     }
