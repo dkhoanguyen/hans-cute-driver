@@ -3,6 +3,7 @@
 
 #include <thread>
 #include <atomic>
+#include <algorithm>
 #include <unordered_map>
 
 #include <ros/ros.h>
@@ -29,7 +30,6 @@ protected:
   ros::NodeHandle nh_;
   ros::Timer state_thread_;
   ros::Publisher joint_state_pub_;
-  ros::Publisher feedback_pub_;
   std::atomic<bool> has_goal_;
 
   actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> follow_joint_as_;
@@ -63,6 +63,7 @@ protected:
 
   std::vector<double> computeError(const std::unordered_map<std::string, double> &current_pos,
                                    const std::unordered_map<std::string, double> &goal_pos);
+  bool jointNamesValid(const std::vector<std::string> &joint_names);
 };
 
 #endif

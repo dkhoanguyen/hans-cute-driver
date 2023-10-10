@@ -9,7 +9,6 @@ HansCuteRosWrapper::HansCuteRosWrapper(ros::NodeHandle &nh)
 {
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
   state_thread_ = nh_.createTimer(ros::Duration(0.05), &HansCuteRosWrapper::stateThread, this);
-  // feedback_pub_ = nh_.advertise<control_msgs::FollowJointTrajectoryFeedback>("/follow_joint_trajectory/feedback", 1);
 }
 
 HansCuteRosWrapper::~HansCuteRosWrapper()
@@ -151,7 +150,7 @@ void HansCuteRosWrapper::followJointTrajGoalCb(
     result_.error_code = -100;
     result_.error_string = "Hans_ROS_Driver: Received another trajectory";
     ROS_ERROR_STREAM(result_.error_string);
-    goal_handle_.setAborted(result_, result_.error_string);
+    goal_handle_.setRejected(result_, result_.error_string);
     // Handle control goal cancellation here
     cancelCurrentGoal();
     return;
@@ -161,6 +160,15 @@ void HansCuteRosWrapper::followJointTrajGoalCb(
   {
     result_.error_code = result_.INVALID_GOAL;
     result_.error_string = "Hans_ROS_Driver: Received trajectory has no point. Rejecting...";
+    ROS_ERROR_STREAM(result_.error_string);
+    goal_handle_.setRejected(result_, result_.error_string);
+    return;
+  }
+
+  if (!jointNamesValid(goal.trajectory.joint_names))
+  {
+    result_.error_code = result_.INVALID_JOINTS;
+    result_.error_string = "Hans_ROS_Driver: Received trajectory has invalid or unknown joint names. Rejecting...";
     ROS_ERROR_STREAM(result_.error_string);
     goal_handle_.setRejected(result_, result_.error_string);
     return;
@@ -202,7 +210,7 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
     }
 
     trajectory_msgs::JointTrajectoryPoint point = traj.points.at(current_indx);
-    double exec_time = point.time_from_start.toSec();
+    double exec_time = point.time_from_start.toSec() + 0.5;
     // Obtain current position first
     std::unordered_map<std::string, double> current_joint_states;
     {
@@ -213,6 +221,8 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
       }
     }
 
+    // Obtain current goal point
+    constructNameJointMapping(joint_names, traj.points.at(current_indx).positions, target_joint_goals);
     // Calculate the velocity required for each joint
     for (std::string joint_name : joint_names)
     {
@@ -246,8 +256,13 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
       // Check if the elapsed time exceeds the desired duration
       if (elapsed_time >= total_duration)
       {
-        ROS_WARN_NAMED("Hans ROS Driver", "Execution time exceeded the desired duration.");
-        break;
+        ROS_WARN_NAMED("Hans ROS Driver", "Execution time exceeded the desired duration. Aborting current goal");
+        cancelCurrentGoal();
+        result_.error_code = result_.GOAL_TOLERANCE_VIOLATED;
+        result_.error_string = "";
+        goal_handle_.setAborted(result_);
+        has_goal_ = false;
+        return;
       }
 
       // Continously check for the current joint and compare it with the goal
@@ -272,10 +287,11 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
       goal_handle_.publishFeedback(feedback);
 
       // Check if at target
-      bool at_target = isAtGoal(current_joint_states, target_joint_goals, 0.1);
+      bool at_target = isAtGoal(current_joint_states, target_joint_goals, 0.05);
       if (at_target)
       {
         // Robot at target, move to the next point
+        ROS_INFO("Hans ROS Driver: Robot at target, move to the next point");
         current_indx++;
         break;
       }
@@ -384,6 +400,10 @@ bool HansCuteRosWrapper::constructNameJointMapping(const std::vector<std::string
 
 std::vector<double> HansCuteRosWrapper::computeError(const std::unordered_map<std::string, double> &current_pos,
                                                      const std::unordered_map<std::string, double> &goal_pos)
+{
+}
+
+bool HansCuteRosWrapper::jointNamesValid(const std::vector<std::string> &joint_names)
 {
 }
 
