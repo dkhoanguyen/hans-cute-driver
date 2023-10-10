@@ -29,6 +29,7 @@ protected:
   ros::NodeHandle nh_;
   ros::Timer state_thread_;
   ros::Publisher joint_state_pub_;
+  ros::Publisher feedback_pub_;
   std::atomic<bool> has_goal_;
 
   actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> follow_joint_as_;
@@ -59,6 +60,9 @@ protected:
   bool isAtGoal(const std::unordered_map<std::string, double> &current_pos,
                 const std::unordered_map<std::string, double> &goal_pos,
                 const double &err);
+
+  std::vector<double> computeError(const std::unordered_map<std::string, double> &current_pos,
+                                   const std::unordered_map<std::string, double> &goal_pos);
 };
 
 #endif

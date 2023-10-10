@@ -40,7 +40,7 @@ def follow_joint_trajectory_client():
             client.wait_for_result()
             break
     print(client.get_result())
-    
+
 if __name__ == '__main__':
     current_joint_positions = None  # Initialize as None
     try:

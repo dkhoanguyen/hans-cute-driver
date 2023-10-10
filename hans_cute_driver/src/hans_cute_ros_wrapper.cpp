@@ -9,6 +9,7 @@ HansCuteRosWrapper::HansCuteRosWrapper(ros::NodeHandle &nh)
 {
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
   state_thread_ = nh_.createTimer(ros::Duration(0.05), &HansCuteRosWrapper::stateThread, this);
+  feedback_pub_ = nh_.advertise<control_msgs::FollowJointTrajectoryFeedback>("/follow_joint_trajectory/feedback", 1);
 }
 
 HansCuteRosWrapper::~HansCuteRosWrapper()
@@ -174,6 +175,8 @@ void HansCuteRosWrapper::followJointTrajGoalCb(
 void HansCuteRosWrapper::followJointTrajCancelCb(
     const actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle &goal_handle)
 {
+  goal_handle_.setCanceled();
+  cancelCurrentGoal();
 }
 
 void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTrajectory &traj)
@@ -183,26 +186,18 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
   int current_indx = 1;
   // Get all joint names
   std::vector<std::string> joint_names = traj.joint_names;
-  // We add roughly 1 seconds offset
   double total_duration = traj.points.at(traj.points.size() - 1).time_from_start.toSec();
-  ROS_INFO("Hans ROS Driver: Execution time: %fs", total_duration);
   ros::Time start_time = ros::Time::now();
+
+  bool traj_sent = false;
+  // Constructing a map name -> joint
+  std::unordered_map<std::string, double> target_joint_goals;
+  std::unordered_map<std::string, double> target_joint_vels;
+
   while (ros::ok() && current_indx < traj.points.size())
   {
-    // Calculate the elapsed time
-    ros::Time current_time = ros::Time::now();
-    double elapsed_time = (current_time - start_time).toSec();
-
-    // Check if the elapsed time exceeds the desired duration
-    if (elapsed_time >= total_duration)
-    {
-      ROS_WARN_NAMED("Hans ROS Driver", "Execution time exceeded the desired duration.");
-      break;
-    }
-
     trajectory_msgs::JointTrajectoryPoint point = traj.points.at(current_indx);
     double exec_time = point.time_from_start.toSec();
-
     // Obtain current position first
     std::unordered_map<std::string, double> current_joint_states;
     {
@@ -212,19 +207,17 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
         ROS_ERROR("Unable to query joint states. Reusing the previously available one");
       }
     }
-    // Constructing a map name -> joint
-    std::unordered_map<std::string, double> target_joint_goals;
-    std::unordered_map<std::string, double> target_joint_vels;
     constructNameJointMapping(joint_names, point.positions, target_joint_goals);
     // Calculate the velocity required for each joint
     for (std::string joint_name : joint_names)
     {
-      double vel = std::abs(target_joint_goals[joint_name]- current_joint_states[joint_name]) / exec_time;
+      double vel = std::abs(target_joint_goals[joint_name] - current_joint_states[joint_name]) / exec_time;
       target_joint_vels[joint_name] = vel;
     }
 
     // Send command
     {
+      ROS_INFO("Hans ROS Driver: Sending trajectory");
       std::unique_lock<std::mutex> lck(driver_mtx_);
       if (!driver_.setJointPVT(target_joint_goals, target_joint_vels))
       {
@@ -232,22 +225,51 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
       }
     }
 
-    // Continously check for the current joint and compare it with the goal
-    do
+    while (ros::ok())
     {
+      // Calculate the elapsed time
+      ros::Time current_time = ros::Time::now();
+      double elapsed_time = (current_time - start_time).toSec();
+
+      // Check if the elapsed time exceeds the desired duration
+      if (elapsed_time >= total_duration)
+      {
+        ROS_WARN_NAMED("Hans ROS Driver", "Execution time exceeded the desired duration.");
+        break;
+      }
+
+      // Continously check for the current joint and compare it with the goal
       std::unordered_map<std::string, double> current_joint_states;
       {
         std::unique_lock<std::mutex> lck(driver_mtx_);
         if (!driver_.getJointStates(current_joint_states))
         {
-          ROS_ERROR("Unable to query joint states. Reusing the previously available one");
+          ROS_ERROR("Hans ROS Driver: Unable to query joint states");
         }
       }
-    } while (!isAtGoal(current_joint_states, target_joint_goals, 0.001));
-    // Robot at target, move to the next point
-    current_indx++;
-  }
 
+      // Publishing feedback
+      control_msgs::FollowJointTrajectoryFeedback feedback;
+      feedback.header.stamp = ros::Time::now();
+      feedback.joint_names = traj.joint_names;
+      feedback.desired = traj.points.at(current_indx);
+      for (auto joint_state : current_joint_states)
+      {
+        feedback.actual.positions.push_back(joint_state.second);
+      }
+      feedback_pub_.publish(feedback);
+
+      // Check if at target
+      bool at_target = isAtGoal(current_joint_states, target_joint_goals, 0.1);
+      if (at_target)
+      {
+        traj_sent = false;
+        // Robot at target, move to the next point
+        current_indx++;
+      }
+    }
+  }
+  ROS_INFO("Hans ROS Driver: Trajectory execution completed");
   // Execution done
   if (has_goal_)
   {
@@ -274,6 +296,23 @@ bool HansCuteRosWrapper::hasPoints(
 bool HansCuteRosWrapper::isStartPositionsMatch(
     const trajectory_msgs::JointTrajectory &traj, const double &err)
 {
+  std::unordered_map<std::string, double> current_joint_states;
+  {
+    std::unique_lock<std::mutex> lck(driver_mtx_);
+    if (!driver_.getJointStates(current_joint_states))
+    {
+      ROS_ERROR("Unable to query joint states. Reusing the previously available one");
+    }
+  }
+  std::unordered_map<std::string, double> target_joint_goals;
+  for (auto joint_pos : current_joint_states)
+  {
+    // std::string joint_name = joint_pos.first;
+    // if (std::abs(joint_pos.second - goal_pos.at(joint_name)) > err)
+    // {
+    //   return false;
+    // }
+  }
   return true;
 }
 bool HansCuteRosWrapper::cancelCurrentGoal()
@@ -324,6 +363,16 @@ bool HansCuteRosWrapper::constructNameJointMapping(const std::vector<std::string
   {
     return false;
   }
+  for (auto idx = 0; idx < names.size(); idx++)
+  {
+    output[names.at(idx)] = pos.at(idx);
+  }
+  return true;
+}
+
+std::vector<double> HansCuteRosWrapper::computeError(const std::unordered_map<std::string, double> &current_pos,
+                                                     const std::unordered_map<std::string, double> &goal_pos)
+{
 }
 
 int main(int argc, char **argv)
