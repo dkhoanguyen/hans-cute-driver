@@ -294,11 +294,13 @@ namespace HansCuteRobot
       double goal_vel_rad = joint_vel.at(joint_name);
       unsigned int goal_vel_raw = 0;
       spdRadToRaw(goal_vel_rad, goal_vel_raw, servo_params_.at(joint_id));
+      // std::cout << "Raw speed: " << goal_vel_raw << std::endl;
       servo_comms_.setSpeed(joint_id, goal_vel_raw);
       // Set max accel
       servo_comms_.setAcceleration(joint_id, 254);
       // Send command
       raw_joint_pos[joint_id] = goal_position_raw;
+      // std::cout << "Raw goal: " << goal_position_raw << std::endl;
     }
     for (auto raw_joint : raw_joint_pos)
     {
@@ -327,7 +329,7 @@ namespace HansCuteRobot
   void HansCuteDriver::spdRadToRaw(
       const double &rad, unsigned int &raw, const ServoParams &params)
   {
-    raw = (unsigned int)round(raw / params.radians_second_per_encoder_tick);
+    raw = (unsigned int)round(rad / params.radians_second_per_encoder_tick);
   }
 
   void HansCuteDriver::spdRawToRad(

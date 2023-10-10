@@ -184,7 +184,8 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
   // Get all joint names
   std::vector<std::string> joint_names = traj.joint_names;
   // We add roughly 1 seconds offset
-  double total_duration = traj.points.end()->time_from_start.toSec() + 1;
+  double total_duration = traj.points.at(traj.points.size() - 1).time_from_start.toSec();
+  ROS_INFO("Hans ROS Driver: Execution time: %fs", total_duration);
   ros::Time start_time = ros::Time::now();
   while (ros::ok() && current_indx < traj.points.size())
   {
@@ -218,14 +219,17 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
     // Calculate the velocity required for each joint
     for (std::string joint_name : joint_names)
     {
-      double vel = std::abs(target_joint_goals.at(joint_name) - current_joint_states.at(joint_name)) / exec_time;
+      double vel = std::abs(target_joint_goals[joint_name]- current_joint_states[joint_name]) / exec_time;
       target_joint_vels[joint_name] = vel;
     }
 
     // Send command
     {
       std::unique_lock<std::mutex> lck(driver_mtx_);
-      driver_.setJointPVT(target_joint_goals, target_joint_vels);
+      if (!driver_.setJointPVT(target_joint_goals, target_joint_vels))
+      {
+        ROS_ERROR_NAMED("Hans ROS Driver", "Unable to set control command to the robot");
+      }
     }
 
     // Continously check for the current joint and compare it with the goal
@@ -261,8 +265,7 @@ bool HansCuteRosWrapper::hasPoints(
     return false;
   for (auto &point : traj.points)
   {
-    if (point.positions.size() != traj.joint_names.size() ||
-        point.velocities.size() != traj.joint_names.size())
+    if (point.positions.size() != traj.joint_names.size())
       return false;
   }
   return true;
