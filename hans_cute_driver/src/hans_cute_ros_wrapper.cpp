@@ -1,7 +1,7 @@
 #include "hans_cute_driver/hans_cute_ros_wrapper.hpp"
 
 HansCuteRosWrapper::HansCuteRosWrapper(ros::NodeHandle &nh)
-    : nh_(nh), start_(false), has_goal_(false),
+    : nh_(nh), start_(false), has_goal_(false), pause_follow_joint_traj_as_(false),
       follow_joint_as_(nh, "/follow_joint_trajectory",
                        boost::bind(&HansCuteRosWrapper::followJointTrajGoalCb, this, _1),
                        boost::bind(&HansCuteRosWrapper::followJointTrajCancelCb, this, _1),
@@ -9,6 +9,7 @@ HansCuteRosWrapper::HansCuteRosWrapper(ros::NodeHandle &nh)
 {
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
   state_thread_ = nh_.createTimer(ros::Duration(0.05), &HansCuteRosWrapper::stateThread, this);
+  home_ss_ = nh_.advertiseService("/home", &HansCuteRosWrapper::homingCb, this);
 }
 
 HansCuteRosWrapper::~HansCuteRosWrapper()
@@ -141,38 +142,47 @@ void HansCuteRosWrapper::stateThread(const ros::TimerEvent &event)
 void HansCuteRosWrapper::followJointTrajGoalCb(
     const actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle &goal_handle)
 {
+  if (pause_follow_joint_traj_as_)
+  {
+    ROS_ERROR("Hans_ROS_Driver: FollowJointTrajectory is paused atm. Rejecting incoming goal...");
+    return;
+  }
+
+  control_msgs::FollowJointTrajectoryResult result;
   ROS_INFO_STREAM("Hans_ROS_Driver: goal received");
   auto goal = *(goal_handle.getGoal());
   goal_handle_ = goal_handle;
+
   if (has_goal_)
   {
-    ROS_WARN_NAMED("Hans_ROS_Driver", "Received new goal while still executing previous trajectory. Canceling previous trajectory");
-    result_.error_code = -100;
-    result_.error_string = "Hans_ROS_Driver: Received another trajectory";
-    ROS_ERROR_STREAM(result_.error_string);
-    goal_handle_.setRejected(result_, result_.error_string);
-    // Handle control goal cancellation here
+    ROS_WARN("Hans_ROS_Driver: Received new goal while still executing previous trajectory. Canceling previous trajectory");
+    result.error_code = -100;
+    result.error_string = "Hans_ROS_Driver: Received another trajectory";
+    goal_handle_.setRejected(result, result.error_string);
     cancelCurrentGoal();
+    has_goal_ = false;
     return;
   }
 
   if (!hasPoints(goal.trajectory))
   {
-    result_.error_code = result_.INVALID_GOAL;
-    result_.error_string = "Hans_ROS_Driver: Received trajectory has no point. Rejecting...";
-    ROS_ERROR_STREAM(result_.error_string);
-    goal_handle_.setRejected(result_, result_.error_string);
+    result.error_code = result.INVALID_GOAL;
+    result.error_string = "Hans_ROS_Driver: Received trajectory has no point. Rejecting...";
+    ROS_ERROR_STREAM(result.error_string);
+    goal_handle_.setRejected(result, result.error_string);
     return;
   }
 
   if (!jointNamesValid(goal.trajectory.joint_names))
   {
-    result_.error_code = result_.INVALID_JOINTS;
-    result_.error_string = "Hans_ROS_Driver: Received trajectory has invalid or unknown joint names. Rejecting...";
-    ROS_ERROR_STREAM(result_.error_string);
-    goal_handle_.setRejected(result_, result_.error_string);
+    result.error_code = result.INVALID_JOINTS;
+    result.error_string = "Hans_ROS_Driver: Received trajectory has invalid or unknown joint names. Rejecting...";
+    ROS_ERROR_STREAM(result.error_string);
+    goal_handle_.setRejected(result, result.error_string);
     return;
   }
+
+  // Check for joint limits bound
 
   // Accept goal
   goal_handle_.setAccepted();
@@ -183,7 +193,10 @@ void HansCuteRosWrapper::followJointTrajGoalCb(
 void HansCuteRosWrapper::followJointTrajCancelCb(
     const actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle &goal_handle)
 {
-  goal_handle_.setCanceled();
+  control_msgs::FollowJointTrajectoryResult result;
+  result.error_code = -200;
+  result.error_string = "Hans ROS Driver: Goal Cancellation received. Cancelling current goal now...";
+  goal_handle_.setCanceled(result, result.error_string);
   cancelCurrentGoal();
 }
 
@@ -201,11 +214,14 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
   std::unordered_map<std::string, double> target_joint_goals;
   std::unordered_map<std::string, double> target_joint_vels;
 
+  control_msgs::FollowJointTrajectoryResult result;
+
   while (ros::ok() && current_indx < traj.points.size())
   {
     // Check if goal is still valid
     if (goal_handle_.getGoalStatus().status != actionlib_msgs::GoalStatus::ACTIVE)
     {
+      ROS_INFO("Hans ROS Driver: Current goal handle is not active. Stop execution");
       return;
     }
 
@@ -258,10 +274,9 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
       {
         ROS_WARN_NAMED("Hans ROS Driver", "Execution time exceeded the desired duration. Aborting current goal");
         cancelCurrentGoal();
-        result_.error_code = result_.GOAL_TOLERANCE_VIOLATED;
-        result_.error_string = "";
-        goal_handle_.setAborted(result_);
-        has_goal_ = false;
+        result.error_code = result.GOAL_TOLERANCE_VIOLATED;
+        result.error_string = "";
+        goal_handle_.setAborted(result);
         return;
       }
 
@@ -297,14 +312,83 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
       }
     }
   }
-  ROS_INFO("Hans ROS Driver: Trajectory execution completed");
   // Execution done
   if (has_goal_)
   {
-    result_.error_code = result_.SUCCESSFUL;
-    goal_handle_.setSucceeded(result_);
+    ROS_INFO("Hans ROS Driver: Trajectory execution completed");
+    result.error_code = result.SUCCESSFUL;
+    result.error_string = "";
+    goal_handle_.setSucceeded(result);
     has_goal_ = false;
   }
+}
+
+bool HansCuteRosWrapper::homingCb(std_srvs::TriggerRequest &req,
+                                  std_srvs::TriggerResponse &res)
+{
+  // Check if action server is executing any goal
+  if (has_goal_)
+  {
+    ROS_ERROR("Han ROS Driver: FollowJointTrajectory Action Server is executing a goal. Cancelling this request");
+    res.success = false;
+    res.message = "Han ROS Driver: FollowJointTrajectory Action Server is executing a goal. Cancelling this request";
+    return false;
+  }
+
+  ROS_INFO("Hans ROS Driver: Homing service called. Executing...");
+  // Prevent action server from accepting goals
+  pause_follow_joint_traj_as_ = true;
+  std::unordered_map<std::string, double> homing_goal;
+  {
+    std::unique_lock<std::mutex> lck(driver_mtx_);
+    if (!driver_.getJointStates(homing_goal))
+    {
+      ROS_ERROR("Hans ROS Driver: Unable to query joint states to cancel current goal");
+      return false;
+    }
+
+    for (auto goal : homing_goal)
+    {
+      homing_goal[goal.first] = 0.0;
+    }
+
+    // Only cancel goal if we can query joint state
+    if (!driver_.setJointPTP(homing_goal, 0.1, 1.0))
+    {
+      ROS_ERROR("Hans ROS Driver: Unable to set homing command");
+      res.success = false;
+      res.message = "Hans ROS Driver: Unable to set homing command";
+      pause_follow_joint_traj_as_ = false;
+      return false;
+    }
+  }
+
+  // Wait until it is homed
+  while (ros::ok())
+  {
+    // Continously check for the current joint and compare it with the goal
+    std::unordered_map<std::string, double> current_joint_states;
+    {
+      std::unique_lock<std::mutex> lck(driver_mtx_);
+      if (!driver_.getJointStates(current_joint_states))
+      {
+        ROS_ERROR("Hans ROS Driver: Unable to query joint states");
+      }
+    }
+
+    // Check if at target
+    bool at_target = isAtGoal(current_joint_states, homing_goal, 0.05);
+    if (at_target)
+    {
+      break;
+    }
+  }
+
+  // Process the request and set the response fields
+  res.success = true;
+  res.message = "Homing executed successfully!";
+  pause_follow_joint_traj_as_ = false;
+  return true;
 }
 
 // Utils
@@ -405,15 +489,42 @@ std::vector<double> HansCuteRosWrapper::computeError(const std::unordered_map<st
 
 bool HansCuteRosWrapper::jointNamesValid(const std::vector<std::string> &joint_names)
 {
+  std::vector<std::string> joint_names_from_driver;
+  {
+    std::unique_lock<std::mutex> lck(driver_mtx_);
+    driver_.getJointNames(joint_names_from_driver);
+  }
+
+  if (joint_names.size() != joint_names_from_driver.size())
+  {
+    return false;
+  }
+  // Sort
+  std::vector<std::string> sorted_input_names = joint_names;
+  std::vector<std::string> sorted_names_from_driver = joint_names_from_driver;
+  std::sort(sorted_input_names.begin(), sorted_input_names.end());
+  std::sort(sorted_names_from_driver.begin(), sorted_names_from_driver.end());
+
+  // Compare the sorted vectors element by element
+  for (int i = 0; i < sorted_input_names.size(); i++)
+  {
+    if (sorted_input_names.at(i) != sorted_names_from_driver.at(i))
+    {
+      return false; // Found a mismatch.
+    }
+  }
+  return true;
 }
 
 int main(int argc, char **argv)
 {
   ros::init(argc, argv, "hans_cute_ros_driver");
   ros::NodeHandle nh;
+  ros::AsyncSpinner spinner(2);
   HansCuteRosWrapper wrapper(nh);
   wrapper.init();
   wrapper.start();
-  ros::spin();
+  spinner.start();
+  ros::waitForShutdown();
   return 0;
 }

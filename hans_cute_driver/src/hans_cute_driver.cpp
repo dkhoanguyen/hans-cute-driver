@@ -246,7 +246,7 @@ namespace HansCuteRobot
                                    const double &accel_per)
   {
     unsigned int vel = 1023 * vel_per;
-    unsigned int accel = 1023 * accel_per;
+    unsigned int accel = 253 * accel_per;
     for (auto joint_pos_it = joint_pos.begin(); joint_pos_it != joint_pos.end(); ++joint_pos_it)
     {
       std::string joint_name = joint_pos_it->first;
