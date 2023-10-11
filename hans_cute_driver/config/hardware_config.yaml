@@ -56,5 +56,6 @@ config:
 
     gripper:
       name: gripper
-      min: 190
+      min: 200
       max: 500
+      speed: 300

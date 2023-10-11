@@ -19,6 +19,13 @@ namespace HansCuteRobot
 
       servo_params_[joint_id] = joint_params;
     }
+    // Gripper
+    gripper_params_.id = 7;
+    gripper_params_.joint_name = "gripper";
+    gripper_params_.raw_origin = 300;
+    gripper_params_.raw_min = 200;
+    gripper_params_.raw_max = 500;
+    gripper_params_.speed = 300;
   }
 
   HansCuteDriver::~HansCuteDriver()
@@ -125,6 +132,22 @@ namespace HansCuteRobot
       {
         return false;
       }
+    }
+
+    // Find gripper
+    if (findServo(gripper_params_.id))
+    {
+      servo_comms_.setAngleLimits(
+          gripper_params_.id, gripper_params_.raw_min, gripper_params_.raw_max);
+      servo_comms_.setSpeed(gripper_params_.id, gripper_params_.speed);
+      servo_comms_.setAcceleration(gripper_params_.id, gripper_params_.acceleration);
+      if (!servo_comms_.setTorqueEnable(gripper_params_.id, true))
+      {
+        return false;
+      }
+      unsigned int position = 0;
+      servo_comms_.getPosition(gripper_params_.id, position);
+      servo_comms_.setPosition(gripper_params_.id, position);
     }
     return true;
   }
@@ -233,8 +256,13 @@ namespace HansCuteRobot
   bool HansCuteDriver::getJointNames(std::vector<std::string> &joint_names)
   {
     joint_names.clear();
-    for(auto param : servo_params_)
+    for (auto param : servo_params_)
     {
+      // Ignore gripper
+      if (param.second.joint_name == "gripper")
+      {
+        continue;
+      }
       joint_names.push_back(param.second.joint_name);
     }
     return true;
@@ -274,6 +302,7 @@ namespace HansCuteRobot
         return false;
       }
     }
+    servo_comms_.setPosition(7, 200);
     return true;
   }
 
@@ -318,7 +347,27 @@ namespace HansCuteRobot
         return false;
       }
     }
+    return true;
+  }
 
+  bool HansCuteDriver::setGripperCommand(const double &pos)
+  {
+    unsigned int raw_pos = (unsigned int)pos;
+    if (!servo_comms_.setPosition(gripper_params_.id, raw_pos))
+    {
+      return false;
+    }
+    return true;
+  }
+
+  bool HansCuteDriver::getGripperPos(double &pos)
+  {
+    unsigned int raw_pos = 0;
+    if (!servo_comms_.getPosition(gripper_params_.id, raw_pos))
+    {
+      return false;
+    }
+    pos = (double)raw_pos;
     return true;
   }
 

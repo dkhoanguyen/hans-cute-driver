@@ -39,9 +39,14 @@ namespace HansCuteRobot
     bool setJointPVT(const std::unordered_map<std::string, double> &joint_pos,
                      const std::unordered_map<std::string, double> &joint_vel);
 
+    // Gripper
+    bool setGripperCommand(const double &pos);
+    bool getGripperPos(double &pos);
+
   protected:
     ServoComms servo_comms_;
     std::unordered_map<unsigned int, ServoParams> servo_params_;
+    ServoParams gripper_params_;
 
     bool findServo(const unsigned int &servo_id);
     bool updateServo(const unsigned int &servo_id,

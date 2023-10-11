@@ -1,11 +1,16 @@
 #include "hans_cute_driver/hans_cute_ros_wrapper.hpp"
 
 HansCuteRosWrapper::HansCuteRosWrapper(ros::NodeHandle &nh)
-    : nh_(nh), start_(false), has_goal_(false), pause_follow_joint_traj_as_(false),
+    : nh_(nh), start_(false), has_goal_(false),
+      has_gripper_goal_(false), pause_follow_joint_traj_as_(false),
       follow_joint_as_(nh, "/follow_joint_trajectory",
                        boost::bind(&HansCuteRosWrapper::followJointTrajGoalCb, this, _1),
                        boost::bind(&HansCuteRosWrapper::followJointTrajCancelCb, this, _1),
-                       false)
+                       false),
+      gripper_command_as_(nh, "/gripper_command",
+                          boost::bind(&HansCuteRosWrapper::gripperCommandCb, this, _1),
+                          boost::bind(&HansCuteRosWrapper::gripperCommandCancelCb, this, _1),
+                          false)
 {
   joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
   state_thread_ = nh_.createTimer(ros::Duration(0.05), &HansCuteRosWrapper::stateThread, this);
@@ -23,7 +28,8 @@ void HansCuteRosWrapper::init()
   SerialPortManager manager;
   manager.startMonitoring();
   while (manager.serialPortAvailable("0403", "6001").empty())
-    ;
+  {
+  }
   std::string port = manager.serialPortAvailable("0403", "6001");
   driver_.init("/dev/ttyUSB0");
 
@@ -42,6 +48,7 @@ void HansCuteRosWrapper::init()
     ROS_ERROR("No baudrate specified.");
   }
 
+  // Robot joints
   for (unsigned int id = 0; id <= 6; id++)
   {
     // Get Joint Name first
@@ -91,6 +98,33 @@ void HansCuteRosWrapper::init()
         joint_name, raw_min, raw_max,
         raw_origin, speed, acceleration);
   }
+
+  // Robot gripper
+  // Get Joint Name first
+  std::string joint_name = "gripper";
+  if (!(nh_.getParam(node_name + "/config/servo_params/gripper/name", joint_name)))
+  {
+    ROS_ERROR("Unable to retrieve name from parameter server");
+  }
+
+  // Get other joint params
+  int raw_origin = 300;
+  int raw_min = 100;
+  int raw_max = 500;
+  int speed = 300;
+  int acceleration = 20;
+
+  if (!(nh_.getParam(node_name + "/config/servo_params/gripper/min", raw_min)))
+  {
+    ROS_ERROR("Unable to retrieve raw min angle from parameter server");
+  }
+
+  if (!(nh_.getParam(node_name + "/config/servo_params/gripper/max", raw_max)))
+  {
+    ROS_ERROR("Unable to retrieve raw max angle from parameter server");
+  }
+  // driver_.setJointLimits("gripper", joint_name, raw_min, raw_max,
+  //                        raw_origin, speed, acceleration);
   ROS_INFO("Init done");
   manager.stopMonitoring();
 }
@@ -101,7 +135,9 @@ void HansCuteRosWrapper::start()
   driver_.start();
   ROS_INFO("Robot driver started");
   follow_joint_as_.start();
-  ROS_INFO("follow_joint_trajectory action server started");
+  ROS_INFO("FollowJointTrajectory action server started");
+  gripper_command_as_.start();
+  ROS_INFO("GripperCommand action server started");
 }
 
 void HansCuteRosWrapper::halt()
@@ -151,14 +187,14 @@ void HansCuteRosWrapper::followJointTrajGoalCb(
   control_msgs::FollowJointTrajectoryResult result;
   ROS_INFO_STREAM("Hans_ROS_Driver: goal received");
   auto goal = *(goal_handle.getGoal());
-  goal_handle_ = goal_handle;
+  follow_traj_goal_handle_ = goal_handle;
 
   if (has_goal_)
   {
     ROS_WARN("Hans_ROS_Driver: Received new goal while still executing previous trajectory. Canceling previous trajectory");
     result.error_code = -100;
     result.error_string = "Hans_ROS_Driver: Received another trajectory";
-    goal_handle_.setRejected(result, result.error_string);
+    follow_traj_goal_handle_.setRejected(result, result.error_string);
     cancelCurrentGoal();
     has_goal_ = false;
     return;
@@ -169,7 +205,7 @@ void HansCuteRosWrapper::followJointTrajGoalCb(
     result.error_code = result.INVALID_GOAL;
     result.error_string = "Hans_ROS_Driver: Received trajectory has no point. Rejecting...";
     ROS_ERROR_STREAM(result.error_string);
-    goal_handle_.setRejected(result, result.error_string);
+    follow_traj_goal_handle_.setRejected(result, result.error_string);
     return;
   }
 
@@ -178,14 +214,14 @@ void HansCuteRosWrapper::followJointTrajGoalCb(
     result.error_code = result.INVALID_JOINTS;
     result.error_string = "Hans_ROS_Driver: Received trajectory has invalid or unknown joint names. Rejecting...";
     ROS_ERROR_STREAM(result.error_string);
-    goal_handle_.setRejected(result, result.error_string);
+    follow_traj_goal_handle_.setRejected(result, result.error_string);
     return;
   }
 
   // Check for joint limits bound
 
   // Accept goal
-  goal_handle_.setAccepted();
+  follow_traj_goal_handle_.setAccepted();
   has_goal_ = true;
   boost::thread(boost::bind(&HansCuteRosWrapper::goalTrajControlThread, this, goal.trajectory)).detach();
 }
@@ -196,7 +232,7 @@ void HansCuteRosWrapper::followJointTrajCancelCb(
   control_msgs::FollowJointTrajectoryResult result;
   result.error_code = -200;
   result.error_string = "Hans ROS Driver: Goal Cancellation received. Cancelling current goal now...";
-  goal_handle_.setCanceled(result, result.error_string);
+  follow_traj_goal_handle_.setCanceled(result, result.error_string);
   cancelCurrentGoal();
 }
 
@@ -219,7 +255,7 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
   while (ros::ok() && current_indx < traj.points.size())
   {
     // Check if goal is still valid
-    if (goal_handle_.getGoalStatus().status != actionlib_msgs::GoalStatus::ACTIVE)
+    if (follow_traj_goal_handle_.getGoalStatus().status != actionlib_msgs::GoalStatus::ACTIVE)
     {
       ROS_INFO("Hans ROS Driver: Current goal handle is not active. Stop execution");
       return;
@@ -259,7 +295,7 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
     while (ros::ok())
     {
       // Check if goal is still valid
-      if (goal_handle_.getGoalStatus().status != actionlib_msgs::GoalStatus::ACTIVE)
+      if (follow_traj_goal_handle_.getGoalStatus().status != actionlib_msgs::GoalStatus::ACTIVE)
       {
         ROS_INFO("Hans ROS Driver: Current goal handle is not active. Stop execution");
         return;
@@ -276,7 +312,7 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
         cancelCurrentGoal();
         result.error_code = result.GOAL_TOLERANCE_VIOLATED;
         result.error_string = "";
-        goal_handle_.setAborted(result);
+        follow_traj_goal_handle_.setAborted(result);
         return;
       }
 
@@ -299,7 +335,7 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
       {
         feedback.actual.positions.push_back(joint_state.second);
       }
-      goal_handle_.publishFeedback(feedback);
+      follow_traj_goal_handle_.publishFeedback(feedback);
 
       // Check if at target
       bool at_target = isAtGoal(current_joint_states, target_joint_goals, 0.05);
@@ -318,9 +354,31 @@ void HansCuteRosWrapper::goalTrajControlThread(const trajectory_msgs::JointTraje
     ROS_INFO("Hans ROS Driver: Trajectory execution completed");
     result.error_code = result.SUCCESSFUL;
     result.error_string = "";
-    goal_handle_.setSucceeded(result);
+    follow_traj_goal_handle_.setSucceeded(result);
     has_goal_ = false;
   }
+}
+
+void HansCuteRosWrapper::gripperCommandCb(
+    const actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle &goal_handle)
+{
+  control_msgs::GripperCommandResult result;
+  gripper_goal_handle_ = goal_handle;
+  if (has_gripper_goal_)
+  {
+    ROS_WARN("Hans_ROS_Driver: Received new command while still executing previous one. Canceling previous command");
+    gripper_goal_handle_.setRejected();
+    has_gripper_goal_ = false;
+    return;
+  }
+  gripper_goal_handle_.setAccepted();
+  has_gripper_goal_ = true;
+  auto goal = *gripper_goal_handle_.getGoal();
+  boost::thread(boost::bind(&HansCuteRosWrapper::gripperCommandThread, this, goal.command)).detach();
+}
+void HansCuteRosWrapper::gripperCommandCancelCb(
+    const actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle &goal_handle)
+{
 }
 
 bool HansCuteRosWrapper::homingCb(std_srvs::TriggerRequest &req,
@@ -389,6 +447,41 @@ bool HansCuteRosWrapper::homingCb(std_srvs::TriggerRequest &req,
   res.message = "Homing executed successfully!";
   pause_follow_joint_traj_as_ = false;
   return true;
+}
+
+void HansCuteRosWrapper::gripperCommandThread(const control_msgs::GripperCommand &command)
+{
+  control_msgs::GripperCommandResult result;
+  double pos = command.position;
+  // Send command
+  {
+    std::unique_lock<std::mutex> lck(driver_mtx_);
+    driver_.setGripperCommand(pos);
+  }
+  // Ensure that the gripper is at location
+  ros::Time start_time = ros::Time::now();
+  double total_duration = 5;
+  while (ros::ok())
+  {
+    double elapsed_time = (ros::Time::now() - start_time).toSec();
+
+    // Check if the elapsed time exceeds the desired duration
+    if (elapsed_time >= 5)
+    {
+      break;
+    }
+    double current_pos = 0.0;
+    {
+      std::unique_lock<std::mutex> lck(driver_mtx_);
+      driver_.getGripperPos(current_pos);
+    }
+    if (current_pos - pos <= 10.0)
+    {
+      break;
+    }
+  }
+  gripper_goal_handle_.setSucceeded(result);
+  has_gripper_goal_ = false;
 }
 
 // Utils

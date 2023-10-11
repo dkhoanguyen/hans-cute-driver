@@ -14,7 +14,7 @@
 #include <sensor_msgs/JointState.h>
 #include <actionlib/server/action_server.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
-
+#include <control_msgs/GripperCommandAction.h>
 #include "hans_cute_driver/serial_port_manager.hpp"
 #include "hans_cute_driver.hpp"
 
@@ -36,12 +36,22 @@ protected:
   ros::ServiceServer teach_ss_;
 
   actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction> follow_joint_as_;
-  actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle goal_handle_;
+  actionlib::ActionServer<control_msgs::GripperCommandAction> gripper_command_as_;
+  actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle follow_traj_goal_handle_;
+  actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle gripper_goal_handle_;
 
+
+  // FollowJointTrajectory
   void followJointTrajGoalCb(
       const actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle &goal_handle);
   void followJointTrajCancelCb(
       const actionlib::ActionServer<control_msgs::FollowJointTrajectoryAction>::GoalHandle &goal_handle);
+
+  // GripperCommand
+  void gripperCommandCb(
+      const actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle &goal_handle);
+  void gripperCommandCancelCb(
+      const actionlib::ActionServer<control_msgs::GripperCommandAction>::GoalHandle &goal_handle);
 
   bool homingCb(std_srvs::TriggerRequest &req,
                 std_srvs::TriggerResponse &res);
@@ -51,10 +61,12 @@ protected:
   bool isStartPositionsMatch(
       const trajectory_msgs::JointTrajectory &traj, const double &err);
   void goalTrajControlThread(const trajectory_msgs::JointTrajectory &traj);
+  void gripperCommandThread(const control_msgs::GripperCommand &command);
 
 protected:
   std::atomic<bool> start_;
   std::atomic<bool> has_goal_;
+  std::atomic<bool> has_gripper_goal_;
   std::atomic<bool> pause_follow_joint_traj_as_;
 
   std::mutex driver_mtx_;
