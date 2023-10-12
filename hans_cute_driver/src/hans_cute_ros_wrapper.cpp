@@ -463,22 +463,51 @@ void HansCuteRosWrapper::gripperCommandThread(const control_msgs::GripperCommand
   double total_duration = 5;
   while (ros::ok())
   {
-    double elapsed_time = (ros::Time::now() - start_time).toSec();
-    // Check if the elapsed time exceeds the desired duration
-    if (elapsed_time >= 5)
-    {
-      break;
-    }
+    // Get current gripper position
     double current_pos = 0.0;
     {
       std::unique_lock<std::mutex> lck(driver_mtx_);
       driver_.getGripperPos(current_pos);
     }
+
+    double elapsed_time = (ros::Time::now() - start_time).toSec();
+    // Check if the elapsed time exceeds the desired duration
+    if (elapsed_time >= 5)
+    {
+      result.effort = 0;
+      result.position = current_pos;
+      result.reached_goal = false;
+      result.stalled = true;
+
+      gripper_goal_handle_.setAborted(result);
+      has_gripper_goal_ = false;
+      return;
+    }
+
+    // Publish feedback
+    control_msgs::GripperCommandFeedback feedback;
+    feedback.stalled = false;
+    feedback.position = current_pos;
+    feedback.effort = 1.5;
+    feedback.reached_goal = false;
+    gripper_goal_handle_.publishFeedback(feedback);
+
     if (current_pos - pos <= 0.001)
     {
       break;
     }
   }
+  // Gripper reaches position
+  double current_pos = 0.0;
+  {
+    std::unique_lock<std::mutex> lck(driver_mtx_);
+    driver_.getGripperPos(current_pos);
+  }
+  result.effort = 1.5;
+  result.position = current_pos;
+  result.reached_goal = true;
+  result.stalled = false;
+
   gripper_goal_handle_.setSucceeded(result);
   has_gripper_goal_ = false;
 }
