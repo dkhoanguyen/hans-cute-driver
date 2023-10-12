@@ -15,6 +15,7 @@
 #include <actionlib/server/action_server.h>
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <control_msgs/GripperCommandAction.h>
+#include <control_msgs/GripperCommand.h>
 #include "hans_cute_driver/serial_port_manager.hpp"
 #include "hans_cute_driver.hpp"
 
@@ -32,6 +33,7 @@ protected:
   ros::NodeHandle nh_;
   ros::Timer state_thread_;
   ros::Publisher joint_state_pub_;
+  ros::Publisher gripper_state_pub_;
   ros::ServiceServer home_ss_;
   ros::ServiceServer teach_ss_;
 

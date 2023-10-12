@@ -12,7 +12,8 @@ HansCuteRosWrapper::HansCuteRosWrapper(ros::NodeHandle &nh)
                           boost::bind(&HansCuteRosWrapper::gripperCommandCancelCb, this, _1),
                           false)
 {
-  joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("joint_states", 1);
+  joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("/joint_states", 1);
+  gripper_state_pub_ = nh_.advertise<control_msgs::GripperCommand>("/gripper_state", 1);
   state_thread_ = nh_.createTimer(ros::Duration(0.05), &HansCuteRosWrapper::stateThread, this);
   home_ss_ = nh_.advertiseService("/home", &HansCuteRosWrapper::homingCb, this);
 }
@@ -149,6 +150,7 @@ void HansCuteRosWrapper::halt()
 
 void HansCuteRosWrapper::stateThread(const ros::TimerEvent &event)
 {
+  // Publish joint states
   sensor_msgs::JointState joint_state_msg;
   std::unordered_map<std::string, double> joint_states;
   {
@@ -173,6 +175,21 @@ void HansCuteRosWrapper::stateThread(const ros::TimerEvent &event)
   joint_state_msg.position = joint_positions;
   joint_state_msg.header.stamp = ros::Time::now();
   joint_state_pub_.publish(joint_state_msg);
+
+  // Publish gripper state
+  control_msgs::GripperCommand gripper_state;
+  double pos = 0.0;
+  {
+    std::unique_lock<std::mutex> lck(driver_mtx_);
+    if (!driver_.getGripperPos(pos))
+    {
+      ROS_ERROR("Unable to query gripper state");
+      return;
+    }
+  }
+  gripper_state.position = pos;
+  gripper_state.max_effort = 1.5;
+  gripper_state_pub_.publish(gripper_state);
 }
 
 void HansCuteRosWrapper::followJointTrajGoalCb(
