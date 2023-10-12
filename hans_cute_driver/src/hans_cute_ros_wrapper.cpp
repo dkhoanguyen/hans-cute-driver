@@ -464,7 +464,6 @@ void HansCuteRosWrapper::gripperCommandThread(const control_msgs::GripperCommand
   while (ros::ok())
   {
     double elapsed_time = (ros::Time::now() - start_time).toSec();
-
     // Check if the elapsed time exceeds the desired duration
     if (elapsed_time >= 5)
     {
@@ -475,7 +474,7 @@ void HansCuteRosWrapper::gripperCommandThread(const control_msgs::GripperCommand
       std::unique_lock<std::mutex> lck(driver_mtx_);
       driver_.getGripperPos(current_pos);
     }
-    if (current_pos - pos <= 10.0)
+    if (current_pos - pos <= 0.001)
     {
       break;
     }

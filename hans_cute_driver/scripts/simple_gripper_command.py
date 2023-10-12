@@ -11,7 +11,7 @@ def gripper_comand_action_client():
     client.wait_for_server()
 
     goal = GripperCommandGoal()
-    goal.command.position = 500.0
+    goal.command.position = 0.0285
 
     client.send_goal(goal)
     client.wait_for_result()

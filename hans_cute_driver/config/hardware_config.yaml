@@ -59,3 +59,4 @@ config:
       min: 200
       max: 500
       speed: 300
+      distance: 0.0285

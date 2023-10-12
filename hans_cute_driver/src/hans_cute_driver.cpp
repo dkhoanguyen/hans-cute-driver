@@ -352,7 +352,21 @@ namespace HansCuteRobot
 
   bool HansCuteDriver::setGripperCommand(const double &pos)
   {
-    unsigned int raw_pos = (unsigned int)pos;
+    // Clamp input
+    double input = pos;
+    if (pos > 0.0285)
+    {
+      input = 0.0285;
+    }
+    else if (pos < 0.0)
+    {
+      input = 0.0;
+    }
+    unsigned int raw_pos = 200;
+    // Linear interpolation
+    double input_range = 0.0285 - 0.0;
+    double output_range = 500 - 200;
+    raw_pos = 200 + (unsigned int)(((input - 0.0) / input_range) * output_range);
     if (!servo_comms_.setPosition(gripper_params_.id, raw_pos))
     {
       return false;
@@ -367,7 +381,9 @@ namespace HansCuteRobot
     {
       return false;
     }
-    pos = (double)raw_pos;
+    double input_range = 500 - 200;
+    double output_range = 0.0285 - 0.0;
+    pos = 0.0 + (double)(((raw_pos - 200) / input_range) * output_range);
     return true;
   }
 
