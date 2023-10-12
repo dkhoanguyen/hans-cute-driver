@@ -19,6 +19,13 @@ namespace HansCuteRobot
 
       servo_params_[joint_id] = joint_params;
     }
+    // Gripper
+    gripper_params_.id = 7;
+    gripper_params_.joint_name = "gripper";
+    gripper_params_.raw_origin = 300;
+    gripper_params_.raw_min = 200;
+    gripper_params_.raw_max = 500;
+    gripper_params_.speed = 300;
   }
 
   HansCuteDriver::~HansCuteDriver()
@@ -125,6 +132,22 @@ namespace HansCuteRobot
       {
         return false;
       }
+    }
+
+    // Find gripper
+    if (findServo(gripper_params_.id))
+    {
+      servo_comms_.setAngleLimits(
+          gripper_params_.id, gripper_params_.raw_min, gripper_params_.raw_max);
+      servo_comms_.setSpeed(gripper_params_.id, gripper_params_.speed);
+      servo_comms_.setAcceleration(gripper_params_.id, gripper_params_.acceleration);
+      if (!servo_comms_.setTorqueEnable(gripper_params_.id, true))
+      {
+        return false;
+      }
+      unsigned int position = 0;
+      servo_comms_.getPosition(gripper_params_.id, position);
+      servo_comms_.setPosition(gripper_params_.id, position);
     }
     return true;
   }
@@ -233,8 +256,13 @@ namespace HansCuteRobot
   bool HansCuteDriver::getJointNames(std::vector<std::string> &joint_names)
   {
     joint_names.clear();
-    for(auto param : servo_params_)
+    for (auto param : servo_params_)
     {
+      // Ignore gripper
+      if (param.second.joint_name == "gripper")
+      {
+        continue;
+      }
       joint_names.push_back(param.second.joint_name);
     }
     return true;
@@ -246,7 +274,7 @@ namespace HansCuteRobot
                                    const double &accel_per)
   {
     unsigned int vel = 1023 * vel_per;
-    unsigned int accel = 1023 * accel_per;
+    unsigned int accel = 253 * accel_per;
     for (auto joint_pos_it = joint_pos.begin(); joint_pos_it != joint_pos.end(); ++joint_pos_it)
     {
       std::string joint_name = joint_pos_it->first;
@@ -274,6 +302,7 @@ namespace HansCuteRobot
         return false;
       }
     }
+    servo_comms_.setPosition(7, 200);
     return true;
   }
 
@@ -318,7 +347,43 @@ namespace HansCuteRobot
         return false;
       }
     }
+    return true;
+  }
 
+  bool HansCuteDriver::setGripperCommand(const double &pos)
+  {
+    // Clamp input
+    double input = pos;
+    if (pos > 0.0285)
+    {
+      input = 0.0285;
+    }
+    else if (pos < 0.0)
+    {
+      input = 0.0;
+    }
+    unsigned int raw_pos = 200;
+    // Linear interpolation
+    double input_range = 0.0285 - 0.0;
+    double output_range = 500 - 200;
+    raw_pos = 200 + (unsigned int)(((input - 0.0) / input_range) * output_range);
+    if (!servo_comms_.setPosition(gripper_params_.id, raw_pos))
+    {
+      return false;
+    }
+    return true;
+  }
+
+  bool HansCuteDriver::getGripperPos(double &pos)
+  {
+    unsigned int raw_pos = 0;
+    if (!servo_comms_.getPosition(gripper_params_.id, raw_pos))
+    {
+      return false;
+    }
+    double input_range = 500 - 200;
+    double output_range = 0.0285 - 0.0;
+    pos = 0.0 + (double)(((raw_pos - 200) / input_range) * output_range);
     return true;
   }
 

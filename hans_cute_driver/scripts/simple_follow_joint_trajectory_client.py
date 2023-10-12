@@ -32,8 +32,8 @@ def follow_joint_trajectory_client():
             goal.trajectory.points.append(point)
 
             point = JointTrajectoryPoint()
-            point.positions = [0,0,0,0,0,0,0]  # Use the current joint positions
-            point.time_from_start = rospy.Duration(5)  # Start after 5s
+            point.positions = [1.57,0,-1.57,0,1.57,0,0]  # Use the current joint positions
+            point.time_from_start = rospy.Duration(10)  # Start after 5s
             goal.trajectory.points.append(point)
 
             client.send_goal(goal)
