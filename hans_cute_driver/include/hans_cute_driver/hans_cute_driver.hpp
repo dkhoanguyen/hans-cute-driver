@@ -44,7 +44,7 @@ namespace HansCuteRobot
     bool getGripperPos(double &pos);
 
   protected:
-    ServoComms servo_comms_;
+    ServoCommunication servo_comms_;
     std::unordered_map<unsigned int, ServoParams> servo_params_;
     ServoParams gripper_params_;
 

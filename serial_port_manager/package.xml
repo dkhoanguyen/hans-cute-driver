@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>hans_cute_driver</name>
+  <name>serial_port_manager</name>
   <version>0.0.0</version>
-  <description>The hans_cute_driver package</description>
+  <description>The serial_port_manager package</description>
 
   <!-- One maintainer tag required, multiple allowed, one person per tag -->
   <!-- Example:  -->
@@ -19,7 +19,7 @@
   <!-- Url tags are optional, but multiple are allowed, one per tag -->
   <!-- Optional attribute type can be: website, bugtracker, or repository -->
   <!-- Example: -->
-  <!-- <url type="website">http://wiki.ros.org/hans_cute_driver</url> -->
+  <!-- <url type="website">http://wiki.ros.org/serial_port_manager</url> -->
 
 
   <!-- Author tags are optional, multiple are allowed, one per tag -->
@@ -50,20 +50,14 @@
   <!--   <doc_depend>doxygen</doc_depend> -->
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
-  <build_depend>serial_port_manager</build_depend>
-  <build_depend>actionlib</build_depend>
-  <build_depend>sensor_msgs</build_depend>
-  <build_depend>control_msgs</build_depend>
+  <build_depend>message_generation</build_depend>
+  <build_depend>message_runtime</build_depend>
   <build_export_depend>roscpp</build_export_depend>
-  <build_export_depend>serial_port_manager</build_export_depend>
-  <build_export_depend>serial</build_export_depend>
-  <build_export_depend>sensor_msgs</build_export_depend>
-  <build_export_depend>control_msgs</build_export_depend>
+  <build_export_depend>message_generation</build_export_depend>
+  <build_export_depend>message_runtime</build_export_depend>
   <exec_depend>roscpp</exec_depend>
-  <exec_depend>serial_port_manager</exec_depend>
-  <exec_depend>serial</exec_depend>
-  <exec_depend>sensor_msgs</exec_depend>
-  <exec_depend>control_msgs</exec_depend>
+  <exec_depend>message_generation</exec_depend>
+  <exec_depend>message_runtime</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

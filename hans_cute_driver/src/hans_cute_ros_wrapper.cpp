@@ -24,16 +24,8 @@ HansCuteRosWrapper::~HansCuteRosWrapper()
 
 void HansCuteRosWrapper::init()
 {
-  // Init robot
-  // SerialPortManager should be a rosnode
-  SerialPortManager manager;
-  manager.startMonitoring();
-  while (manager.serialPortAvailable("0403", "6001").empty())
-  {
-  }
-  std::string port = manager.serialPortAvailable("0403", "6001");
+  // Init servo communication
   driver_.init("/dev/ttyUSB0");
-
   //  Get Namespace and node name first
   std::string node_namespace = ros::this_node::getNamespace();
   std::string node_name = ros::this_node::getName();
@@ -127,7 +119,6 @@ void HansCuteRosWrapper::init()
   // driver_.setJointLimits("gripper", joint_name, raw_min, raw_max,
   //                        raw_origin, speed, acceleration);
   ROS_INFO("Init done");
-  manager.stopMonitoring();
 }
 
 void HansCuteRosWrapper::start()

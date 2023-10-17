@@ -15,17 +15,17 @@
 #include "hans_cute_datatype.h"
 #include "hans_cute_const.h"
 #include "servo_utils.hpp"
-#include "serial_port.hpp"
+#include "serial_port_manager/serial_port.hpp"
 
 namespace HansCuteRobot
 {
-  class ServoComms
+  class ServoCommunication
   {
   public:
-    ServoComms();
-    ~ServoComms();
+    ServoCommunication();
+    ~ServoCommunication();
 
-    bool open(const std::string &port);
+    bool open(const std::string &port, const unsigned int &baudrate);
     bool close();
     bool ping(const uint8_t &id, std::vector<uint8_t> &returned_data);
 

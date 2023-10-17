@@ -6,8 +6,8 @@
 // Links: https://blog.mbedded.ninja/programming/operating-systems/linux/linux-serial-ports-using-c-cpp/#software-flow-control-ixoff-ixon-ixany
 // https://github.com/gbmhunter/CppLinuxSerial
 
-#ifndef HANS_CUTE_DRIVER__SERIAL_PORT_HPP_
-#define HANS_CUTE_DRIVER__SERIAL_PORT_HPP_
+#ifndef SERIAL_PORT_MANAGER__SERIAL_PORT_HPP_
+#define SERIAL_PORT_MANAGER__SERIAL_PORT_HPP_
 
 #include <string>
 #include <fstream>  // For file I/O (reading/writing to COM port)

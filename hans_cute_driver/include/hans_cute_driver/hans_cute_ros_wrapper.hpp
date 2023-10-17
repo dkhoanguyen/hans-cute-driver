@@ -16,7 +16,6 @@
 #include <control_msgs/FollowJointTrajectoryAction.h>
 #include <control_msgs/GripperCommandAction.h>
 #include <control_msgs/GripperCommand.h>
-#include "hans_cute_driver/serial_port_manager.hpp"
 #include "hans_cute_driver.hpp"
 
 class HansCuteRosWrapper
