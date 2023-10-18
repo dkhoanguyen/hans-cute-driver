@@ -89,7 +89,7 @@ namespace HansCuteRobot
     bool port_opened = false;
     for (unsigned int num = 0; num < 5; num++)
     {
-      if (servo_comms_.open(port,250000))
+      if (servo_comms_.open(port))
       {
         port_opened = true;
         break;

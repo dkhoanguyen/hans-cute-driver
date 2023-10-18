@@ -2,18 +2,18 @@
 
 namespace HansCuteRobot
 {
-  ServoCommunication::ServoCommunication()
+  ServoComms::ServoComms()
   {
   }
 
-  ServoCommunication::~ServoCommunication()
+  ServoComms::~ServoComms()
   {
   }
 
-  bool ServoCommunication::open(const std::string &port, const unsigned int &baudrate)
+  bool ServoComms::open(const std::string &port)
   {
     // Open a new one
-    serial_port_ptr_ = std::make_shared<SerialPort>(port, baudrate, 50);
+    serial_port_ptr_ = std::make_shared<SerialPort>(port, 250000, 50);
     if (!serial_port_ptr_->openPort())
     {
       return false;
@@ -22,11 +22,11 @@ namespace HansCuteRobot
     return true;
   }
 
-  bool ServoCommunication::close()
+  bool ServoComms::close()
   {
   }
 
-  bool ServoCommunication::read(const uint8_t &id, const uint8_t &address,
+  bool ServoComms::read(const uint8_t &id, const uint8_t &address,
                         const uint8_t &size, std::vector<uint8_t> &returned_data,
                         unsigned long &timestamp)
   {
@@ -53,7 +53,7 @@ namespace HansCuteRobot
     }
     return true;
   }
-  bool ServoCommunication::write(const uint8_t &id, const uint8_t &address,
+  bool ServoComms::write(const uint8_t &id, const uint8_t &address,
                          const std::vector<uint8_t> &data,
                          std::vector<uint8_t> &returned_data,
                          unsigned long &timestamp)
@@ -88,7 +88,7 @@ namespace HansCuteRobot
     }
     return true;
   }
-  bool ServoCommunication::syncWrite(const uint8_t &address,
+  bool ServoComms::syncWrite(const uint8_t &address,
                              const std::vector<std::vector<uint8_t>> &data)
   {
     // First flatten the input data
@@ -127,7 +127,7 @@ namespace HansCuteRobot
     return true;
   }
 
-  bool ServoCommunication::ping(
+  bool ServoComms::ping(
       const uint8_t &id, std::vector<uint8_t> &returned_data)
   {
     uint8_t length = 2;
@@ -155,7 +155,7 @@ namespace HansCuteRobot
     return true;
   }
 
-  uint8_t ServoCommunication::calcCheckSum(std::vector<uint8_t> &data) const
+  uint8_t ServoComms::calcCheckSum(std::vector<uint8_t> &data) const
   {
     unsigned int checksum = 0;
     unsigned int payload_sum = 0;
@@ -169,7 +169,7 @@ namespace HansCuteRobot
     return (uint8_t)checksum;
   }
 
-  int ServoCommunication::readResponse(std::vector<uint8_t> &response)
+  int ServoComms::readResponse(std::vector<uint8_t> &response)
   {
     std::vector<uint8_t> returned_data;
     if (serial_port_ptr_->available() == 0)
@@ -211,7 +211,7 @@ namespace HansCuteRobot
     return (int)SerialError::NO_ERROR;
   }
 
-  int ServoCommunication::writeCommand(const std::vector<uint8_t> &command)
+  int ServoComms::writeCommand(const std::vector<uint8_t> &command)
   {
     try
     {
@@ -230,24 +230,24 @@ namespace HansCuteRobot
   // These function modify EEPROM data which persists after power cycle //
   //====================================================================//
 
-  bool ServoCommunication::setID(
+  bool ServoComms::setID(
       const uint8_t &old_id, const uint8_t &new_id)
   {
     return true;
   }
 
-  bool ServoCommunication::setBaudrate(
+  bool ServoComms::setBaudrate(
       const uint8_t &servo_id, const long &baudrate)
   {
     return true;
   }
 
-  bool ServoCommunication::setReturnDelayTime(
+  bool ServoComms::setReturnDelayTime(
       const uint8_t &servo_id, const unsigned int &delay_time)
   {
     return true;
   }
-  bool ServoCommunication::setAngleLimits(
+  bool ServoComms::setAngleLimits(
       const uint8_t &servo_id, const unsigned int &min_limit,
       const unsigned int &max_limit)
   {
@@ -262,12 +262,12 @@ namespace HansCuteRobot
     unsigned long timestamp;
     return write(servo_id, (uint8_t)ControlTableConstant::CW_ANGLE_LIMIT_L, data, returned_data, timestamp);
   }
-  bool ServoCommunication::setVoltageLimits(
+  bool ServoComms::setVoltageLimits(
       const uint8_t &servo_id, const double &min, const double &max)
   {
     return true;
   }
-  bool ServoCommunication::setMaxTorque(
+  bool ServoComms::setMaxTorque(
       const uint8_t &servo_id, const unsigned int &max_torque)
   {
     return true;
@@ -276,7 +276,7 @@ namespace HansCuteRobot
   //===============================================================//
   // These functions can send multiple commands to a single servo  //
   //===============================================================//
-  bool ServoCommunication::setTorqueEnable(
+  bool ServoComms::setTorqueEnable(
       const uint8_t &servo_id, const bool &enabled)
   {
     std::vector<uint8_t> data({(uint8_t)enabled});
@@ -284,14 +284,14 @@ namespace HansCuteRobot
     unsigned long timestamp;
     return write(servo_id, (uint8_t)ControlTableConstant::TORQUE_ENABLE, data, returned_data, timestamp);
   }
-  bool ServoCommunication::setComplianceMargin() {}
-  bool ServoCommunication::setComplianceSlope() {}
+  bool ServoComms::setComplianceMargin() {}
+  bool ServoComms::setComplianceSlope() {}
 
-  bool ServoCommunication::setDGain() {}
-  bool ServoCommunication::setIGain() {}
-  bool ServoCommunication::setPGain() {}
+  bool ServoComms::setDGain() {}
+  bool ServoComms::setIGain() {}
+  bool ServoComms::setPGain() {}
 
-  bool ServoCommunication::setAcceleration(
+  bool ServoComms::setAcceleration(
       const uint8_t &servo_id, const unsigned int &acceleration)
   {
     std::vector<uint8_t> raw_data({(uint8_t)(acceleration % 256), (uint8_t)(acceleration >> 8)});
@@ -299,7 +299,7 @@ namespace HansCuteRobot
     unsigned long timestamp;
     return write(servo_id, (uint8_t)ControlTableConstant::GOAL_ACCELERATION, raw_data, returned_data, timestamp);
   }
-  bool ServoCommunication::setPosition(
+  bool ServoComms::setPosition(
       const uint8_t &servo_id, const unsigned int &position)
   {
     std::vector<uint8_t> raw_postion({(uint8_t)(position % 256), (uint8_t)(position >> 8)});
@@ -307,7 +307,7 @@ namespace HansCuteRobot
     unsigned long timestamp;
     return write(servo_id, (uint8_t)ControlTableConstant::GOAL_POSITION_L, raw_postion, returned_data, timestamp);
   }
-  bool ServoCommunication::setSpeed(
+  bool ServoComms::setSpeed(
       const uint8_t &servo_id, const unsigned int &speed)
   {
     std::vector<uint8_t> raw_speed({(uint8_t)(speed % 256), (uint8_t)(speed >> 8)});
@@ -316,17 +316,17 @@ namespace HansCuteRobot
     return write(servo_id, (uint8_t)ControlTableConstant::GOAL_SPEED_L, raw_speed, returned_data, timestamp);
   }
 
-  bool ServoCommunication::setTorqueLimit(
+  bool ServoComms::setTorqueLimit(
       const uint8_t &servo_id, const unsigned int &torque_limit)
   {
     return true;
   }
-  bool ServoCommunication::setGoalTorque()
+  bool ServoComms::setGoalTorque()
   {
     return true;
   }
 
-  bool ServoCommunication::setPositionAndSpeed()
+  bool ServoComms::setPositionAndSpeed()
   {
     return true;
   }
@@ -335,34 +335,34 @@ namespace HansCuteRobot
   // These functions can send multiple commands to multiple servos //
   //===============================================================//
 
-  bool ServoCommunication::setMultiTorqueEnabled()
+  bool ServoComms::setMultiTorqueEnabled()
   {
     return true;
   }
 
   // Range is between 0 -> 255
-  bool ServoCommunication::setMultiComplianceMargin()
+  bool ServoComms::setMultiComplianceMargin()
   {
     return true;
   }
-  bool ServoCommunication::setMultiComplianceSlope()
+  bool ServoComms::setMultiComplianceSlope()
   {
     return true;
   }
 
   // Position value ranges from 0 -> 4095 (0xFFF), unit is 0.088 degree
-  bool ServoCommunication::setMultiPosition(
+  bool ServoComms::setMultiPosition(
       const std::vector<unsigned int> &servo_ids,
       const std::vector<unsigned int> &positions)
   {
   }
-  bool ServoCommunication::setMultiSpeed(
+  bool ServoComms::setMultiSpeed(
       const std::vector<unsigned int> &servo_ids,
       const std::vector<unsigned int> &speeds) {}
 
-  bool ServoCommunication::setMultiTorqueLimit(const std::vector<unsigned int> &servo_ids,
+  bool ServoComms::setMultiTorqueLimit(const std::vector<unsigned int> &servo_ids,
                                        const std::vector<double> &torque_limits) {}
-  bool ServoCommunication::setMultiPositionAndSpeed(
+  bool ServoComms::setMultiPositionAndSpeed(
       const std::vector<unsigned int> &servo_ids,
       const std::vector<unsigned int> &positions,
       const std::vector<unsigned int> &speeds)
@@ -384,7 +384,7 @@ namespace HansCuteRobot
   //===============================//
   // Servo status access functions //
   //===============================//
-  bool ServoCommunication::getModelNumber(const int &servo_id, unsigned int &model_number)
+  bool ServoComms::getModelNumber(const int &servo_id, unsigned int &model_number)
   {
     std::vector<uint8_t> response;
     unsigned long timestamp = 0;
@@ -395,11 +395,11 @@ namespace HansCuteRobot
     model_number = HansCuteRobot::ModelNumber::getData(response);
     return true;
   }
-  bool ServoCommunication::getFirmwareVersion() {}
-  bool ServoCommunication::getReturnDelayTime() {}
+  bool ServoComms::getFirmwareVersion() {}
+  bool ServoComms::getReturnDelayTime() {}
 
-  bool ServoCommunication::getMaxTorque(const int &servo_id, unsigned int &torque) {}
-  bool ServoCommunication::getTorqueEnabled(const int &servo_id, bool &enabled)
+  bool ServoComms::getMaxTorque(const int &servo_id, unsigned int &torque) {}
+  bool ServoComms::getTorqueEnabled(const int &servo_id, bool &enabled)
   {
     std::vector<uint8_t> response;
     unsigned long timestamp = 0;
@@ -409,7 +409,7 @@ namespace HansCuteRobot
     }
     return true;
   }
-  bool ServoCommunication::getAngleLimits(
+  bool ServoComms::getAngleLimits(
       const int &servo_id, unsigned int &angle_min, unsigned int &angle_max)
   {
     std::vector<uint8_t> response;
@@ -422,9 +422,9 @@ namespace HansCuteRobot
     angle_max = (unsigned int)(response.at(7) + (response.at(8) << 8));
     return true;
   }
-  bool ServoCommunication::getVoltageLimits() {}
+  bool ServoComms::getVoltageLimits() {}
 
-  bool ServoCommunication::getPosition(const int &servo_id, unsigned int &position)
+  bool ServoComms::getPosition(const int &servo_id, unsigned int &position)
   {
     std::vector<uint8_t> response;
     unsigned long timestamp = 0;
@@ -435,7 +435,7 @@ namespace HansCuteRobot
     position = (unsigned int)(response.at(5) + (response.at(6) << 8));
     return true;
   }
-  bool ServoCommunication::getSpeed(const int &servo_id, unsigned int &speed)
+  bool ServoComms::getSpeed(const int &servo_id, unsigned int &speed)
   {
     std::vector<uint8_t> response;
     unsigned long timestamp = 0;
@@ -446,13 +446,13 @@ namespace HansCuteRobot
     speed = (unsigned int)(unsigned int)(response.at(5) + (response.at(6) << 8));
     return true;
   }
-  bool ServoCommunication::getAcceleration(const int &servo_id, unsigned int &acceleration) {}
+  bool ServoComms::getAcceleration(const int &servo_id, unsigned int &acceleration) {}
 
-  bool ServoCommunication::getVoltage() {}
-  bool ServoCommunication::getCurrent() {}
-  bool ServoCommunication::getLock(const int &servo_id, bool &lock) {}
+  bool ServoComms::getVoltage() {}
+  bool ServoComms::getCurrent() {}
+  bool ServoComms::getLock(const int &servo_id, bool &lock) {}
 
-  bool ServoCommunication::getFeedback(const int &servo_id, ServoFeedback &feedback)
+  bool ServoComms::getFeedback(const int &servo_id, ServoFeedback &feedback)
   {
     return true;
   }

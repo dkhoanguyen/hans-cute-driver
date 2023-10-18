@@ -1,7 +1,6 @@
-#include "serial_port_manager/serial_port_manager.hpp"
+#include "hans_cute_driver/serial_port_manager.hpp"
 
-SerialPortManager::SerialPortManager(ros::NodeHandle nh)
-    : nh_(nh), start_monitoring_(false)
+SerialPortManager::SerialPortManager() : start_monitoring_(false)
 {
   udev_ = udev_new();
   if (!udev_)
@@ -13,15 +12,16 @@ SerialPortManager::SerialPortManager(ros::NodeHandle nh)
   monitor_ = udev_monitor_new_from_netlink(udev_, "udev");
   udev_monitor_filter_add_match_subsystem_devtype(monitor_, "tty", NULL);
   udev_monitor_enable_receiving(monitor_);
-
-  // ROS stuff
-  monitor_thread_ = nh_.createTimer(ros::Duration(0.1), &SerialPortManager::monitorThread, this);
 }
 SerialPortManager::~SerialPortManager()
 {
+  if (monitor_thread_.joinable())
+  {
+    monitor_thread_.join();
+  }
 }
 
-bool SerialPortManager::serialPortAvailable(const std::string &vendor_id, const std::string &product_id, std::string &path)
+std::string SerialPortManager::serialPortAvailable(const std::string &vendor_id, const std::string &product_id)
 {
   std::vector<std::string> output;
   for (const auto &pair : device_map_)
@@ -33,12 +33,11 @@ bool SerialPortManager::serialPortAvailable(const std::string &vendor_id, const 
   }
   if (output.size() == 1)
   {
-    path = output.at(0);
-    return true;
+    return output.at(0);
   }
   else if (output.size() == 0)
   {
-    return false;
+    return "";
   }
 
   // Check all ports to see if any of them are occupied and return the first available one
@@ -48,23 +47,32 @@ bool SerialPortManager::serialPortAvailable(const std::string &vendor_id, const 
     if (fd != -1)
     {
       close(fd);
-      path = port;
-      return true;
+      return port;
     }
     close(fd);
   }
-  return false;
+  return "";
 }
 
 void SerialPortManager::startMonitoring()
 {
-  // Scan for all existing devices before monitoring
+  start_monitoring_ = true;
+  monitor_thread_ = std::thread(&SerialPortManager::monitorFunc, this);
+}
+
+void SerialPortManager::stopMonitoring()
+{
+  start_monitoring_ = false;
+  monitor_thread_.join();
+}
+
+void SerialPortManager::monitorFunc()
+{
+  // Scan for all devices before monitoring
   struct udev_enumerate *enumerate;
   struct udev_list_entry *devices, *entry;
-  ;
 
   // Create an enumerate object to list devices in the "tty" subsystem
-  // In the future we should also monitor for other types of devices as well
   enumerate = udev_enumerate_new(udev_);
   udev_enumerate_add_match_subsystem(enumerate, "tty");
   udev_enumerate_scan_devices(enumerate);
@@ -88,69 +96,52 @@ void SerialPortManager::startMonitoring()
     {
       device_map_[devnode] = std::string(vendor_id) + ":" + std::string(product_id);
     }
+    // std::cout << device_path << std::endl;
     udev_device_unref(device);
   }
 
   // Cleanup
   udev_enumerate_unref(enumerate);
+  // std::cout << "Done" << std::endl;
 
-  // When done start monitoring threads
-  start_monitoring_ = true;
-}
-
-void SerialPortManager::stopMonitoring()
-{
-  start_monitoring_ = false;
-}
-
-void SerialPortManager::monitorThread(const ros::TimerEvent &event)
-{
-  if (!start_monitoring_)
+  while (start_monitoring_)
   {
-    return;
-  }
-
-  struct udev_device *device = udev_monitor_receive_device(monitor_);
-  if (device)
-  {
-    const char *action = udev_device_get_action(device);
-    const char *devnode = udev_device_get_devnode(device);
-
-    if (action && devnode)
+    struct udev_device *device = udev_monitor_receive_device(monitor_);
+    if (device)
     {
-      if (std::string(action) == "add")
-      {
-        auto it = device_map_.find(std::string(devnode));
-        if (it == device_map_.end())
-        {
-          // Extract vendor and product IDs from udev properties
-          const char *vendor_id = udev_device_get_property_value(device, "ID_VENDOR_ID");
-          const char *product_id = udev_device_get_property_value(device, "ID_MODEL_ID");
+      const char *action = udev_device_get_action(device);
+      const char *devnode = udev_device_get_devnode(device);
 
-          if (vendor_id && product_id)
+      if (action && devnode)
+      {
+        if (std::string(action) == "add")
+        {
+          auto it = device_map_.find(std::string(devnode));
+          if (it == device_map_.end())
           {
-            // Use the device node as the key and store vendor/product IDs as a pair in the unordered_map
-            device_map_[devnode] = std::string(vendor_id) + ":" + std::string(product_id);
+            // Extract vendor and product IDs from udev properties
+            const char *vendor_id = udev_device_get_property_value(device, "ID_VENDOR_ID");
+            const char *product_id = udev_device_get_property_value(device, "ID_MODEL_ID");
+
+            if (vendor_id && product_id)
+            {
+              // Use the device node as the key and store vendor/product IDs as a pair in the unordered_map
+              device_map_[devnode] = std::string(vendor_id) + ":" + std::string(product_id);
+            }
           }
         }
-      }
-      else if (std::string(action) == "remove")
-      {
-        // Device removed, remove it from the list
-        auto it = device_map_.find(std::string(devnode));
-        if (it != device_map_.end())
+        else if (std::string(action) == "remove")
         {
-          device_map_.erase(devnode);
-          // std::cout << "Removed Device: " << devnode << std::endl;
+          // Device removed, remove it from the list
+          auto it = device_map_.find(std::string(devnode));
+          if (it != device_map_.end())
+          {
+            device_map_.erase(devnode);
+            // std::cout << "Removed Device: " << devnode << std::endl;
+          }
         }
+        udev_device_unref(device);
       }
-      udev_device_unref(device);
     }
   }
-}
-
-int main(int argc, char **argv)
-{
-  ros::init(argc, argv, "serial_port_manager");
-  return 0;
 }

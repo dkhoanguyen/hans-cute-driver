@@ -1,5 +1,5 @@
-#ifndef SERIAL_PORT_MANAGER__SERIAL_PORT_MANAGER_HPP_
-#define SERIAL_PORT_MANAGER__SERIAL_PORT_MANAGER_HPP_
+#ifndef HANS_CUTE_DRIVER__SERIAL_PORT_MANAGER_HPP_
+#define HANS_CUTE_DRIVER__SERIAL_PORT_MANAGER_HPP_
 
 #include <iostream>
 #include <unordered_map>
@@ -13,32 +13,25 @@
 #include <stdlib.h>
 #include <libudev.h>
 
-#include <ros/ros.h>
-
 class SerialPortManager
 {
 public:
-  SerialPortManager(ros::NodeHandle nh);
+  SerialPortManager();
   ~SerialPortManager();
 
-  bool serialPortAvailable(const std::string &vendor_id, const std::string &product_id, std::string &path);
+  std::string serialPortAvailable(const std::string &vendor_id, const std::string &product_id);
   void startMonitoring();
   void stopMonitoring();
-
-protected:
-  ros::NodeHandle nh_;
-  ros::Timer monitor_thread_;
-
-  void monitorThread(const ros::TimerEvent &event);
 
 protected:
   std::atomic<bool> start_monitoring_;
   struct udev *udev_;
   struct udev_monitor *monitor_;
+  std::thread monitor_thread_;
 
   std::vector<std::string> device_list_;
   std::unordered_map<std::string, std::string> device_map_;
-  
+  void monitorFunc();
 };
 
 #endif
